@@ -14,7 +14,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>(); // ✅ La clé est bien déclarée
 
   bool _isPasswordVisible = false;
   bool _rememberMe = false;
@@ -58,7 +58,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       children: [
                         const SizedBox(height: 20),
-                        // Logo KH
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: const BoxDecoration(
@@ -109,245 +108,248 @@ class _LoginScreenState extends State<LoginScreen> {
           // CONTENU PRINCIPAL
           SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(24, 290, 24, 40),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Bienvenue !',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F2B5B),
+            // ✅ CORRECTION ICI : Ajout du widget Form avec la clé _formKey
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Bienvenue !',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F2B5B),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
-                // Champ Email
-                const Text(
-                  'Adresse e-mail',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF374151),
+                  // Champ Email
+                  const Text(
+                    'Adresse e-mail',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF374151),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Veuillez entrer votre email';
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF9CA3AF)),
-                    hintText: 'Entrez votre email',
-                    hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF0F2B5B), width: 2),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Champ Mot de passe
-                const Text(
-                  'Mot de passe',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF374151),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: !_isPasswordVisible,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer votre mot de passe';
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF9CA3AF)),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                        color: const Color(0xFF9CA3AF),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _isPasswordVisible = !_isPasswordVisible;
-                        });
-                      },
-                    ),
-                    hintText: 'Entrez votre mot de passe',
-                    hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF0F2B5B), width: 2),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Checkbox Se souvenir de moi
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _rememberMe,
-                      activeColor: const Color(0xFF0F2B5B),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _rememberMe = value ?? false;
-                        });
-                      },
-                    ),
-                    const Text(
-                      'Se souvenir de moi',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF4B5563),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Bouton Se connecter
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F2B5B),
-                      shape: RoundedRectangleBorder(
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Veuillez entrer votre email';
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF9CA3AF)),
+                      hintText: 'Entrez votre email',
+                      hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+                      border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
                       ),
-                      elevation: 0,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF0F2B5B), width: 2),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
                     ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text(
-                            'Se connecter',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
-                // Séparateur "ou"
-                Row(
-                  children: [
-                    const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'ou',
+                  // Champ Mot de passe
+                  const Text(
+                    'Mot de passe',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF374151),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: !_isPasswordVisible,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Veuillez entrer votre mot de passe';
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF9CA3AF)),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                          color: const Color(0xFF9CA3AF),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
+                      hintText: 'Entrez votre mot de passe',
+                      hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF0F2B5B), width: 2),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Checkbox Se souvenir de moi
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _rememberMe,
+                        activeColor: const Color(0xFF0F2B5B),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            _rememberMe = value ?? false;
+                          });
+                        },
+                      ),
+                      const Text(
+                        'Se souvenir de moi',
                         style: TextStyle(
-                          color: Colors.grey[500],
                           fontSize: 14,
+                          color: Color(0xFF4B5563),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Bouton Se connecter
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _handleLogin,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0F2B5B),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'Se connecter',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Séparateur "ou"
+                  Row(
+                    children: [
+                      const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'ou',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Bouton Créer un compte
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const RegisterStep1Screen()),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF0F2B5B), width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Créer un compte',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F2B5B),
                         ),
                       ),
                     ),
-                    const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Bouton Créer un compte
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const RegisterStep1Screen()),
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFF0F2B5B), width: 1.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Créer un compte',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F2B5B),
-                      ),
-                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // Mot de passe oublié
-                Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      // TODO: Navigation vers récupération de mot de passe
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Fonctionnalité de récupération de mot de passe à venir'),
-                          backgroundColor: Colors.blue,
+                  // Mot de passe oublié
+                  Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Fonctionnalité de récupération de mot de passe à venir'),
+                            backgroundColor: Colors.blue,
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Mot de passe oublié ?',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF0F2B5B),
+                          decoration: TextDecoration.underline,
                         ),
-                      );
-                    },
-                    child: const Text(
-                      'Mot de passe oublié ?',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0F2B5B),
-                        decoration: TextDecoration.underline,
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ), // ✅ Fin du widget Form
           ),
 
           // VAGUE BLEUE EN BAS
@@ -378,20 +380,31 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+    print("🔵 [LOGIN] 1. Le bouton a été cliqué !");
 
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) {
+      print("🔴 [LOGIN] 2. Échec de la validation. Vérifie les champs vides.");
+      return;
+    }
+
+    print("🟡 [LOGIN] 3. Formulaire valide. Activation du chargement...");
+    setState(() => _isLoading = true);
+
+    try {
       String email = _emailController.text.trim();
       String password = _passwordController.text;
 
+      print("🟡 [LOGIN] 4. Envoi des données à l'API pour : $email");
       AuthService authService = AuthService();
       var result = await authService.login(email, password);
+      
+      print("🟢 [LOGIN] 5. Réponse de l'API reçue : $result");
 
       if (!mounted) return;
 
-      setState(() => _isLoading = false);
-
       if (result['success'] == true) {
+        print("✅ [LOGIN] Connexion réussie, sauvegarde du token...");
         try {
           final prefs = await SharedPreferences.getInstance();
           final token = result['token'] ?? result['access_token'];
@@ -403,14 +416,14 @@ class _LoginScreenState extends State<LoginScreen> {
             await prefs.setString('email', result['user']['email'].toString());
           }
         } catch (e) {
-          print("❌ ERREUR lors de la sauvegarde : $e");
+          print("❌ [LOGIN] Erreur lors de la sauvegarde locale : $e");
         }
 
         if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ ${result['message']}'),
+            content: Text('✅ ${result['message'] ?? 'Connexion réussie'}'),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
           ),
@@ -421,13 +434,29 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (context) => const MainScreen()),
         );
       } else {
+        print("⚠️ [LOGIN] L'API a refusé la connexion : ${result['error']}");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ ${result['error'] ?? 'Erreur de connexion'}'),
+            content: Text('❌ ${result['error'] ?? 'Email ou mot de passe incorrect'}'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
         );
+      }
+    } catch (e) {
+      print("🔴 [LOGIN] ERREUR FATALE LORS DE L'APPEL API : $e");
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Erreur de connexion au serveur. Vérifiez votre internet.\nDétail: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        print("🔵 [LOGIN] 6. Chargement terminé.");
       }
     }
   }
@@ -439,12 +468,7 @@ class _TopWaveClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     final path = Path();
     path.lineTo(0, size.height - 60);
-    path.quadraticBezierTo(
-      size.width / 2, 
-      size.height + 20, 
-      size.width, 
-      size.height - 60
-    );
+    path.quadraticBezierTo(size.width / 2, size.height + 20, size.width, size.height - 60);
     path.lineTo(size.width, 0);
     path.close();
     return path;
@@ -460,12 +484,7 @@ class _BottomWaveClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     final path = Path();
     path.moveTo(0, 60);
-    path.quadraticBezierTo(
-      size.width / 2, 
-      -20, 
-      size.width, 
-      60
-    );
+    path.quadraticBezierTo(size.width / 2, -20, size.width, 60);
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
     path.close();
