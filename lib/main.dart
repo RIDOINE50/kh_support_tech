@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:device_preview/device_preview.dart';
 
 // Tes imports
 import 'screens/splash/splash_screen.dart';
@@ -9,7 +8,7 @@ import 'screens/auth/register_step1_screen.dart';
 import 'screens/main/main_screen.dart';
 import 'screens/services/services_screen.dart';
 import 'screens/formations/formations_screen.dart';
-import 'core/constants/app_routes.dart'; // ✅ Importe tes constantes de routes
+import 'core/constants/app_routes.dart';
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
 
@@ -23,12 +22,9 @@ class MyHttpOverrides extends HttpOverrides {
 
 void main() {
   HttpOverrides.global = MyHttpOverrides();
-  runApp(
-    DevicePreview(
-      enabled: true, // ⚠️ Mets 'false' ici pour la version finale Play Store
-      builder: (context) => const MyApp(),
-    ),
-  );
+  
+  // ✅ On lance directement l'application sans le cadre de simulation
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -72,12 +68,10 @@ class MyApp extends StatelessWidget {
           // 3. Écran de démarrage
           home: const SplashScreen(),
           
-          // ✅ 4. TABLE DES ROUTES (C'est ce qui manquait et causait le blocage !)
+          // 4. TABLE DES ROUTES
           routes: {
             AppRoutes.home: (context) => const MainScreen(),
             AppRoutes.login: (context) => const LoginScreen(),
-            // Si tu as un dashboard admin, ajoute-le ici aussi :
-            // AppRoutes.adminDashboard: (context) => const AdminDashboardScreen(),
           },
         );
       },
