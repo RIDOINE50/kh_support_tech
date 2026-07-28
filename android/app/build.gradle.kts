@@ -1,6 +1,6 @@
 plugins {
     id("com.android.application")
-    // Le plugin Flutter Gradle doit être appliqué après les plugins Android et Kotlin.
+    id("org.jetbrains.kotlin.android") // ✅ C'EST LA LIGNE MANQUANTE QUI CAUSAIT TOUT !
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -14,8 +14,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // ✅ On dit à Kotlin de compiler en Java 17 pour être cohérent
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
     defaultConfig {
-        // TODO: Spécifiez votre propre ID d'application unique
         applicationId = "com.example.kh_support_tech"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
@@ -25,16 +29,10 @@ android {
 
     buildTypes {
         release {
-            // TODO: Ajoutez votre propre configuration de signature pour la version release.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
 }
-
-
-
-
-// ✅ LE BLOC PROBLÉMATIQUE A ÉTÉ SUPPRIMÉ ICI
 
 flutter {
     source = "../.."
