@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # 1. Checkout du code (MIS À JOUR EN v4)
+      # 1. Checkout du code
       - uses: actions/checkout@v4
       
       # 2. Setup Java (nécessaire pour Android)
@@ -20,11 +20,10 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
       
-      # 3. Setup Flutter
+      # 3. Setup Flutter (✅ CORRECTION : Version spécifique au lieu de "stable")
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
-          channel: 'stable'
+          flutter-version: '3.24.0' 
           cache: true
       
       # 4. Installer les dépendances
@@ -35,7 +34,7 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
       
-      # 6. Upload APK (MIS À JOUR EN v4)
+      # 6. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
