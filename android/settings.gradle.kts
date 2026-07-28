@@ -19,10 +19,10 @@ pluginManagement {
 
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
-    // ✅ Version stable pour Flutter 3.24 (au lieu de 9.0.1 qui est trop récente)
-    id("com.android.application") version "8.1.0" apply false 
-    // ✅ Version Kotlin stable (au lieu de 2.3.20)
-    id("org.jetbrains.kotlin.android") version "1.8.22" apply false 
+    // ✅ AGP 8.1.0 : La version la plus stable pour Flutter 3.24
+    id("com.android.application") version "8.1.0" apply false
+    // ✅ Kotlin 1.9.0 : Comprend le bloc "compilerOptions" et est compatible avec AGP 8.1.0
+    id("org.jetbrains.kotlin.android") version "1.9.0" apply false
 }
 
 include(":app")
