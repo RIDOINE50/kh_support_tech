@@ -5,7 +5,6 @@ import 'package:kh_support_tech/models/programme_model.dart';
 import '../models/formation_model.dart';
 import '../models/inscription_model.dart';
 
-
 class ApiService {
   // L'URL de base de ton API Laravel sur Railway
   static const String baseUrl = 'https://kh-support-backend-production.up.railway.app/api';
@@ -38,7 +37,7 @@ class ApiService {
           'email': email,
           'password': password,
         }),
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 60)); // ✅ CHANGÉ À 60 SECONDES
 
       print("📥 Réponse de Laravel (Code: ${response.statusCode}) -> ${response.body}");
 
@@ -72,7 +71,7 @@ class ApiService {
         url,
         headers: _getHeaders(),
         body: jsonEncode(userData),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 60)); // ✅ CHANGÉ À 60 SECONDES
 
       final data = jsonDecode(response.body);
 
@@ -106,7 +105,7 @@ class ApiService {
         url,
         headers: _getHeaders(token: token),
         body: jsonEncode(inscriptionData),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 60)); // ✅ CHANGÉ À 60 SECONDES
 
       print("📥 Réponse inscription (Code: ${response.statusCode}) -> ${response.body}");
 
@@ -121,7 +120,7 @@ class ApiService {
       } else if (response.statusCode == 401) {
         return {
           'success': false,
-          'error': '401', // Code spécial détecté par AuthService
+          'error': '401', 
         };
       } else {
         return {
@@ -143,7 +142,7 @@ class ApiService {
       final response = await http.get(
         url,
         headers: _getHeaders(),
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 60)); // ✅ CHANGÉ À 60 SECONDES
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -166,7 +165,7 @@ class ApiService {
       final response = await http.get(
         url,
         headers: _getHeaders(token: token),
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 60)); // ✅ CHANGÉ À 60 SECONDES
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -201,7 +200,7 @@ class ApiService {
           'formation_id': formationId,
           'amount': amount,
         }),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 60)); // ✅ CHANGÉ À 60 SECONDES
 
       print("📥 Réponse callback KKiaPay (Code: ${response.statusCode}) -> ${response.body}");
 
@@ -231,7 +230,7 @@ class ApiService {
         url,
         headers: _getHeaders(token: token),
         body: jsonEncode(serviceData),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 60)); // ✅ CHANGÉ À 60 SECONDES
 
       print("📥 Réponse service (Code: ${response.statusCode}) -> ${response.body}");
 
@@ -265,7 +264,7 @@ class ApiService {
       final response = await http.get(
         url,
         headers: _getHeaders(token: token),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 60)); // ✅ CHANGÉ À 60 SECONDES
 
       print("📥 Réponse admin demandes (Code: ${response.statusCode})");
 
@@ -298,7 +297,7 @@ class ApiService {
       final response = await http.get(
         url,
         headers: _getHeaders(token: token),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 60)); // ✅ CHANGÉ À 60 SECONDES
 
       print("📥 Réponse admin commandes (Code: ${response.statusCode})");
 
@@ -336,7 +335,7 @@ class ApiService {
         url,
         headers: _getHeaders(token: token),
         body: jsonEncode({'statut': statut}),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 60)); // ✅ CHANGÉ À 60 SECONDES
 
       print("📥 Réponse mise à jour statut (Code: ${response.statusCode})");
 
@@ -371,7 +370,7 @@ class ApiService {
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode(commandeData),
-      );
+      ).timeout(const Duration(seconds: 60)); // ✅ AJOUTÉ TIMEOUT 60 SECONDES
 
       final data = jsonDecode(response.body);
 
@@ -388,7 +387,7 @@ class ApiService {
  // 📑 12. Envoyer une demande de devis (avec option de fichier joint en Multipart)
   Future<Map<String, dynamic>> demanderDevis({
     required Map<String, dynamic> devisFields,
-    dynamic file, // Optionnel : PlatformFile de file_picker ou null
+    dynamic file, 
     required String token,
   }) async {
     try {
@@ -399,14 +398,12 @@ class ApiService {
         'Authorization': 'Bearer $token',
       });
 
-      // Ajouter tous les champs textuels du devis
       devisFields.forEach((key, value) {
         if (value != null) {
           request.fields[key] = value.toString();
         }
       });
 
-      // Ajout du fichier s'il est fourni
       if (file != null) {
         try {
           if (file.bytes != null) {
@@ -427,7 +424,7 @@ class ApiService {
         }
       }
 
-      var streamedResponse = await request.send();
+      var streamedResponse = await request.send().timeout(const Duration(seconds: 60)); // ✅ AJOUTÉ TIMEOUT 60 SECONDES
       var response = await http.Response.fromStream(streamedResponse);
       
       Map<String, dynamic> responseData;
@@ -450,15 +447,14 @@ class ApiService {
     }
   }
  
-Future<List<Programme>> fetchProgrammes() async {
-    // 1. Récupérer le token stocké
+  // 📚 13. Récupérer les programmes
+  Future<List<Programme>> fetchProgrammes() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 
     final url = Uri.parse('$baseUrl/programmes');
 
     try {
-      // 2. Faire la requête en incluant le token dans les headers
       final response = await http.get(
         url,
         headers: {
@@ -466,14 +462,11 @@ Future<List<Programme>> fetchProgrammes() async {
           'Accept': 'application/json',
           if (token != null) 'Authorization': 'Bearer $token',
         },
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 60)); // ✅ AJOUTÉ TIMEOUT 60 SECONDES
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
-        // Gère à la fois le format direct [...] et le format paginé {'data': [...]}
         List list = (data is Map) ? (data['data'] ?? []) : data;
-        
         return list.map((dynamic item) => Programme.fromJson(item)).toList();
       } else {
         throw Exception('Erreur de chargement : ${response.statusCode}');
