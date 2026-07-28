@@ -31,6 +31,9 @@ android {
     }
 }
 
+
+
+
 // ✅ LE BLOC PROBLÉMATIQUE A ÉTÉ SUPPRIMÉ ICI
 
 flutter {
