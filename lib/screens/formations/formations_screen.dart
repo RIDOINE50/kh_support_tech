@@ -4,10 +4,9 @@ import '../../core/constants/app_colors.dart';
 import '../../services/formation_api.dart'; 
 import 'package:kh_support_tech/screens/payment/payment_screen.dart';
 import 'formation_detail_screen.dart';
-// ✅ 1. IMPORT DU MAINSCREEN
 import '../main/main_screen.dart'; 
 
-// Modèle de données (inchangé)
+// Modèle de données
 class Formation {
   final int id;
   final String title;
@@ -114,8 +113,10 @@ class _FormationsScreenState extends State<FormationsScreen> {
     }).toList();
   }
 
+  // ✅ FONCTION POUR OUVRIR WHATSAPP (Numéro mis à jour)
   Future<void> _lancerContact(String titreFormation) async {
-    final String numeroWhatsApp = '22997123456'; 
+    // ✅ NUMÉRO CORRIGÉ ICI
+    final String numeroWhatsApp = '2290161127145'; 
     final String message = Uri.encodeComponent('Bonjour, je suis intéressé par la formation : "$titreFormation". Pouvez-vous me donner plus de détails ?');
     final Uri url = Uri.parse('https://wa.me/$numeroWhatsApp?text=$message');
 
@@ -146,7 +147,6 @@ class _FormationsScreenState extends State<FormationsScreen> {
 
     final listToDisplay = _filteredFormations;
     
-    // ✅ 3. TAILLE DE L'IMAGE AUGMENTÉE DE 2PX (110 -> 112)
     const double imageSize = 112; 
 
     return Scaffold(

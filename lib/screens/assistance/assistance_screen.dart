@@ -1,33 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart'; // ✅ Import du package
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
-import 'faq_screen.dart'; // Nous allons créer ce fichier à l'étape 3
+import 'faq_screen.dart';
 
 class AssistanceScreen extends StatelessWidget {
   const AssistanceScreen({super.key});
 
-  // --- FONCTIONS POUR OUVRIR LES APPLICATIONS ---
-
-  // 1. WhatsApp
+  // --- 1. WhatsApp (Numéro mis à jour : +229 01 61 12 71 45) ---
   Future<void> _launchWhatsApp() async {
-    final Uri url = Uri.parse('https://wa.me/22997123456?text=Bonjour,%20j\'ai%20besoin%20d\'aide%20concernant%20vos%20services.');
+    final Uri url = Uri.parse(
+      'https://wa.me/2290161127145?text=Bonjour,%20j\'ai%20besoin%20d\'aide%20concernant%20vos%20services.'
+    );
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       debugPrint('Impossible d\'ouvrir WhatsApp');
     }
   }
 
-  // 2. Téléphone
+  // --- 2. Téléphone (Numéro mis à jour : 01 57 86 59 09) ---
+  // On ajoute l'indicatif +229 pour que ça fonctionne sur tous les téléphones
   Future<void> _launchPhone() async {
-    final Uri url = Uri.parse('tel:+22997123456');
+    final Uri url = Uri.parse('tel:+2290157865909');
     if (!await launchUrl(url)) {
       debugPrint('Impossible d\'ouvrir le composeur téléphonique');
     }
   }
 
-  // 3. E-mail
+  // --- 3. E-mail (Adresse mise à jour : khtech2024@gmail.com) ---
   Future<void> _launchEmail() async {
     final Uri url = Uri.parse(
-      'mailto:support@khsupporttech.com?subject=Demande%20d\'assistance&body=Bonjour%20l\'équipe%20KH%20SUPPORT%20TECH,%0A%0AJ\'ai%20besoin%20d\'aide%20pour%20:'
+      'mailto:khtech2024@gmail.com?subject=Demande%20d\'assistance&body=Bonjour%20l\'équipe%20KH%20SUPPORT%20TECH,%0A%0AJ\'ai%20besoin%20d\'aide%20pour%20:'
     );
     if (!await launchUrl(url)) {
       debugPrint('Impossible d\'ouvrir l\'application e-mail');
@@ -36,8 +37,14 @@ class AssistanceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ DÉTECTION DU MODE SOMBRE POUR ADAPTER LES COULEURS
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? (isDark ? Colors.white : Colors.black87);
+    final textSecondary = Theme.of(context).textTheme.bodyMedium?.color ?? (isDark ? Colors.grey[400]! : Colors.black54);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor, // ✅ Fond adaptatif (Blanc en clair, Noir/Gris foncé en sombre)
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,21 +56,21 @@ class AssistanceScreen extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
+                    child: Icon(Icons.arrow_back_ios_new, size: 20, color: textColor), // ✅ Icône adaptative
                   ),
                   const SizedBox(width: 20),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Assistance',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                        color: textColor, // ✅ Texte adaptatif
                       ),
                     ),
                   ),
-                  const SizedBox(width: 36),
+                  const SizedBox(width: 36), // Pour équilibrer la flèche retour
                 ],
               ),
             ),
@@ -71,12 +78,12 @@ class AssistanceScreen extends StatelessWidget {
             // SOUS-TITRE
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: const Text(
+              child: Text(
                 'Comment pouvons-nous vous aider ?',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: textColor, // ✅ Texte adaptatif
                 ),
               ),
             ),
@@ -91,17 +98,14 @@ class AssistanceScreen extends StatelessWidget {
                     iconColor: const Color(0xFF22C55E),
                     title: 'Chat en direct',
                     subtitle: 'Discutez avec un conseiller',
-                    onTap: () {
-                      // Pour l'instant, on redirige aussi vers WhatsApp ou on peut créer un écran de chat simple
-                      _launchWhatsApp(); 
-                    },
+                    onTap: _launchWhatsApp, 
                   ),
                   const SizedBox(height: 12),
                   _AssistanceOption(
-                    icon: Icons.wechat, // Icône style messagerie
+                    icon: Icons.wechat,
                     iconColor: const Color(0xFF25D366),
                     title: 'WhatsApp',
-                    subtitle: 'Envoyez-nous un message',
+                    subtitle: '+229 01 61 12 71 45', // ✅ Nouveau numéro affiché
                     onTap: _launchWhatsApp,
                   ),
                   const SizedBox(height: 12),
@@ -109,7 +113,7 @@ class AssistanceScreen extends StatelessWidget {
                     icon: Icons.call,
                     iconColor: const Color(0xFF3B82F6),
                     title: 'Appeler',
-                    subtitle: '+229 97 12 34 56',
+                    subtitle: '01 57 86 59 09', // ✅ Nouveau numéro affiché
                     onTap: _launchPhone,
                   ),
                   const SizedBox(height: 12),
@@ -117,7 +121,7 @@ class AssistanceScreen extends StatelessWidget {
                     icon: Icons.email,
                     iconColor: const Color(0xFF8B5CF6),
                     title: 'E-mail',
-                    subtitle: 'support@khsupporttech.com',
+                    subtitle: 'khtech2024@gmail.com', // ✅ Nouvel email affiché
                     onTap: _launchEmail,
                   ),
                   const SizedBox(height: 12),
@@ -144,7 +148,7 @@ class AssistanceScreen extends StatelessWidget {
   }
 }
 
-// WIDGET RÉUTILISABLE POUR LES OPTIONS D'ASSISTANCE
+// WIDGET RÉUTILISABLE POUR LES OPTIONS D'ASSISTANCE (Adapté au Mode Sombre)
 class _AssistanceOption extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
@@ -162,17 +166,24 @@ class _AssistanceOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Détection du thème à l'intérieur de la carte pour l'adapter parfaitement
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = Theme.of(context).cardColor;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? (isDark ? Colors.white : Colors.black87);
+    final textSecondary = Theme.of(context).textTheme.bodyMedium?.color ?? (isDark ? Colors.grey[400]! : Colors.black54);
+    final borderColor = isDark ? Colors.grey[800]! : const Color(0xFFF3F4F6);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cardColor, // ✅ Fond de la carte adaptatif (Blanc ou Gris foncé)
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFF3F4F6)),
+          border: Border.all(color: borderColor), // ✅ Bordure adaptative (presque invisible en sombre)
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withOpacity(isDark ? 0.3 : 0.02), // ✅ Ombre plus visible en mode sombre
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -196,26 +207,26 @@ class _AssistanceOption extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      color: textColor, // ✅ Titre adaptatif
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      color: textSecondary, // ✅ Sous-titre adaptatif
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.chevron_right,
-              color: AppColors.textSecondary,
+              color: textSecondary, // ✅ Flèche adaptative
               size: 20,
             ),
           ],

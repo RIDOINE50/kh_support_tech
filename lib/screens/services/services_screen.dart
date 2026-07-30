@@ -4,7 +4,6 @@ import '../../core/constants/app_colors.dart';
 import '../../services/service_api.dart';
 import 'service_demande_screen.dart';
 import 'package:kh_support_tech/models/service_model.dart';
-// ✅ 1. IMPORT DU MAINSCREEN
 import '../main/main_screen.dart'; 
 
 // ⭐ ÉCRAN PRINCIPAL DES SERVICES
@@ -55,9 +54,10 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
   }
 
-  // ✅ FONCTION POUR OUVRIR WHATSAPP
+  // ✅ FONCTION POUR OUVRIR WHATSAPP (Numéro mis à jour)
   Future<void> _lancerContact(String serviceName) async {
-    final String numeroWhatsApp = '22997123456'; 
+    // ✅ NUMÉRO CORRIGÉ ICI
+    final String numeroWhatsApp = '2290161127145'; 
     final String message = Uri.encodeComponent('Bonjour, je suis intéressé par le service : "$serviceName". Pouvez-vous me donner plus de détails ?');
     final Uri url = Uri.parse('https://wa.me/$numeroWhatsApp?text=$message');
 
@@ -84,9 +84,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
     final errorIconColor = isDark ? Colors.grey[500]! : const Color(0xFF9CA3AF);
     final shadowColor = Colors.black.withOpacity(isDark ? 0.3 : 0.08);
 
-    // ✅ 3. TAILLE DE L'IMAGE (Largeur 112, Hauteur 130 pour l'alignement parfait)
     const double imageWidth = 112;
-    const double imageHeight = 135; // ✅ Augmenté à 130px
+    const double imageHeight = 135; 
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -193,19 +192,19 @@ class _ServicesScreenState extends State<ServicesScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ IMAGE À GAUCHE (Hauteur 130px pour s'aligner parfaitement avec les boutons)
+            // ✅ IMAGE À GAUCHE
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: service.image.isNotEmpty
                   ? Image.network(
                       service.image,
                       width: imageWidth,
-                      height: imageHeight, // ✅ 130px
+                      height: imageHeight,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           width: imageWidth,
-                          height: imageHeight, // ✅ 130px
+                          height: imageHeight,
                           color: errorBgColor,
                           child: Icon(Icons.image, size: 40, color: errorIconColor),
                         );
@@ -213,7 +212,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                     )
                   : Container(
                       width: imageWidth,
-                      height: imageHeight, // ✅ 130px
+                      height: imageHeight,
                       color: errorBgColor,
                       child: Icon(Icons.build, size: 40, color: errorIconColor),
                     ),

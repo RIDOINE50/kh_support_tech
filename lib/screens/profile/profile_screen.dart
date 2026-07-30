@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
-import 'edit_profile_screen.dart';
 import 'user_commandes_screen.dart';
 import 'user_factures_screen.dart';
 import 'user_interventions_screen.dart';
@@ -9,7 +8,6 @@ import 'user_formations_screen.dart';
 import 'user_devis_screen.dart';
 import 'user_certificats_screen.dart';
 import '../auth/login_screen.dart';
-// ✅ ASSURE-TOI QUE CE CHEMIN EST CORRECT
 import '../main/main_screen.dart'; 
 
 class ProfileScreen extends StatefulWidget {
@@ -64,17 +62,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: true,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new, color: textColor),
-          onPressed: _goToHome, // ← Utilise la nouvelle fonction
+          onPressed: _goToHome,
         ),
         title: Text(
           'Mon Profil',
           style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
         ),
       ),
-      // ... le reste du corps reste identique ...
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // CARTE PROFIL (SANS le bouton modifier)
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -113,20 +111,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const EditProfileScreen()),
-                    ).then((_) => _loadUserHeaderInfo());
-                  },
-                ),
+                // ✅ LE BOUTON CRAYON A ÉTÉ SUPPRIMÉ ICI
               ],
             ),
           ),
    
-// ... le widget _AccountMenuItem reste identique ...
           const SizedBox(height: 24),
           Text(
             'Mon Activité',
@@ -214,7 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
                 (route) => false,
               );
             },

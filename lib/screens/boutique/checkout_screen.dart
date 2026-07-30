@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
 import '../../services/cart_service.dart';
 import '../../services/api_service.dart';
@@ -12,11 +13,26 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  String modeLivraison = 'livraison'; // 'livraison' ou 'retrait'
+  String modeLivraison = 'livraison'; 
   final _localisationController = TextEditingController();
   final _telephoneController = TextEditingController();
   bool isLoading = false;
   final ApiService _apiService = ApiService();
+
+  Future<void> _contacterWhatsApp() async {
+    final String numero = '2290161127145';
+    final String message = 'Bonjour, j\'ai une question concernant ma commande sur KH Support Tech.';
+    final Uri whatsappUrl = Uri.parse('https://wa.me/$numero?text=${Uri.encodeComponent(message)}');
+
+    if (await canLaunchUrl(whatsappUrl)) {
+      await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossible d\'ouvrir WhatsApp. Veuillez vérifier qu\'il est installé.')),
+      );
+    }
+  }
 
   Future<void> _validerCommande() async {
     if (CartService().items.isEmpty) {
@@ -79,12 +95,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Succès 🎉'),
-            content: const Text('Votre commande a été envoyée avec succès ! L\'administrateur va la traiter.'),
+            content: const Text('Votre commande a été envoyée avec succès ! L\'administrateur va la traiter. Vous pouvez nous contacter sur WhatsApp pour le suivi.'),
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context); // Ferme la modale
-                  Navigator.pop(context); // Retourne à l'écran précédent
+                  Navigator.pop(context); 
+                  Navigator.pop(context); 
                 },
                 child: const Text('OK'),
               ),
@@ -112,7 +128,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ DÉTECTION DU MODE SOMBRE ET COULEURS DYNAMIQUES
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = Theme.of(context).scaffoldBackgroundColor;
     final cardColor = Theme.of(context).cardColor;
@@ -122,55 +137,37 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final chipUnselectedBg = isDark ? Colors.grey[800] : Colors.grey[200];
 
     return Scaffold(
-      backgroundColor: bgColor, // ✅ Fond adaptatif
+      backgroundColor: bgColor,
       appBar: AppBar(
-        title: Text(
-          'Valider la commande', 
-          style: TextStyle(color: textColor, fontWeight: FontWeight.bold) // ✅ Texte adaptatif
-        ),
-        backgroundColor: bgColor, // ✅ AppBar adaptative
+        title: Text('Valider la commande', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+        backgroundColor: bgColor,
         elevation: 0,
-        iconTheme: IconThemeData(color: textColor), // ✅ Icône retour adaptative
+        iconTheme: IconThemeData(color: textColor),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            Text(
-              'Mode de réception', 
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor) // ✅ Texte adaptatif
-            ),
+            Text('Mode de réception', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor)),
             const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
                   child: ChoiceChip(
-                    label: Text(
-                      'Livraison à domicile',
-                      style: TextStyle(
-                        color: modeLivraison == 'livraison' ? Colors.white : textColor, // ✅ Texte du chip adaptatif
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    label: Text('Livraison à domicile', style: TextStyle(color: modeLivraison == 'livraison' ? Colors.white : textColor, fontWeight: FontWeight.w500)),
                     selected: modeLivraison == 'livraison',
                     selectedColor: AppColors.primary,
-                    backgroundColor: chipUnselectedBg, // ✅ Fond du chip non sélectionné adaptatif
+                    backgroundColor: chipUnselectedBg,
                     onSelected: (val) => setState(() => modeLivraison = 'livraison'),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: ChoiceChip(
-                    label: Text(
-                      'Retrait en boutique',
-                      style: TextStyle(
-                        color: modeLivraison == 'retrait' ? Colors.white : textColor, // ✅ Texte du chip adaptatif
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    label: Text('Retrait en boutique', style: TextStyle(color: modeLivraison == 'retrait' ? Colors.white : textColor, fontWeight: FontWeight.w500)),
                     selected: modeLivraison == 'retrait',
                     selectedColor: AppColors.primary,
-                    backgroundColor: chipUnselectedBg, // ✅ Fond du chip non sélectionné adaptatif
+                    backgroundColor: chipUnselectedBg,
                     onSelected: (val) => setState(() => modeLivraison = 'retrait'),
                   ),
                 ),
@@ -181,19 +178,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             if (modeLivraison == 'livraison') ...[
               TextField(
                 controller: _localisationController,
-                style: TextStyle(color: textColor), // ✅ Texte saisi adaptatif
+                style: TextStyle(color: textColor),
                 decoration: InputDecoration(
                   labelText: 'Votre localisation / Adresse précise',
-                  labelStyle: TextStyle(color: textSecondary), // ✅ Label adaptatif
+                  labelStyle: TextStyle(color: textSecondary),
                   border: const OutlineInputBorder(),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: textSecondary.withOpacity(0.5)), // ✅ Bordure adaptative
-                  ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.primary, width: 2),
-                  ),
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: textSecondary.withOpacity(0.5))),
+                  focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppColors.primary, width: 2)),
                   filled: true,
-                  fillColor: cardColor, // ✅ Fond du champ adaptatif
+                  fillColor: cardColor,
                   prefixIcon: const Icon(Icons.location_on, color: Colors.red),
                 ),
               ),
@@ -203,98 +196,92 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             TextField(
               controller: _telephoneController,
               keyboardType: TextInputType.phone,
-              style: TextStyle(color: textColor), // ✅ Texte saisi adaptatif
+              style: TextStyle(color: textColor),
               decoration: InputDecoration(
                 labelText: 'Numéro de téléphone',
-                labelStyle: TextStyle(color: textSecondary), // ✅ Label adaptatif
+                labelStyle: TextStyle(color: textSecondary),
                 border: const OutlineInputBorder(),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: textSecondary.withOpacity(0.5)), // ✅ Bordure adaptative
-                ),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.primary, width: 2),
-                ),
+                enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: textSecondary.withOpacity(0.5))),
+                focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppColors.primary, width: 2)),
                 filled: true,
-                fillColor: cardColor, // ✅ Fond du champ adaptatif
-                prefixIcon: Icon(Icons.phone, color: textSecondary), // ✅ Icône adaptative
+                fillColor: cardColor,
+                prefixIcon: Icon(Icons.phone, color: textSecondary),
               ),
             ),
             
             const SizedBox(height: 25),
             
-            Text(
-              'Résumé du panier', 
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor) // ✅ Texte adaptatif
-            ),
+            Text('Résumé du panier', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor)),
             const SizedBox(height: 10),
             
-            // ✅ Liste des articles du panier dans des cartes adaptatives
             ...CartService().items.map((item) => Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: cardColor, // ✅ Fond de carte adaptatif
+                color: cardColor,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: dividerColor), // ✅ Bordure adaptative
+                border: Border.all(color: dividerColor),
               ),
               child: ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text(
-                  item.title, 
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w600) // ✅ Texte adaptatif
-                ),
-                subtitle: Text(
-                  'Quantité: ${item.quantity}', 
-                  style: TextStyle(color: textSecondary) // ✅ Texte adaptatif
-                ),
-                trailing: Text(
-                  '${(item.price * item.quantity).toStringAsFixed(0)} FCFA', 
-                  style: TextStyle(fontWeight: FontWeight.bold, color: textColor) // ✅ Texte adaptatif
-                ),
+                title: Text(item.title, style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
+                subtitle: Text('Quantité: ${item.quantity}', style: TextStyle(color: textSecondary)),
+                trailing: Text('${(item.price * item.quantity).toStringAsFixed(0)} FCFA', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
               ),
             )),
             
-            Divider(color: dividerColor, thickness: 2), // ✅ Séparateur adaptatif
+            Divider(color: dividerColor, thickness: 2),
             
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Total :', 
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor) // ✅ Texte adaptatif
-                ),
-                Text(
-                  '${CartService().totalAmount.toStringAsFixed(0)} FCFA', 
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
-                ),
+                Text('Total :', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
+                Text('${CartService().totalAmount.toStringAsFixed(0)} FCFA', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
               ],
             ),
             
             const SizedBox(height: 30),
             
+            // ✅ BOUTON PRINCIPAL DE VALIDATION
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white, // ✅ Texte du bouton toujours blanc
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: isLoading ? null : _validerCommande,
                 child: isLoading 
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                      ) 
-                    : const Text(
-                        'Payer / Valider la commande', 
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
+                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) 
+                    : const Text('Payer / Valider la commande', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
-            const SizedBox(height: 20), // Espace supplémentaire pour le bas de l'écran
+            
+            const SizedBox(height: 15),
+
+            // ✅ NOUVEAU BOUTON WHATSAPP (CORRIGÉ ET PROPRE)
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton.icon(
+                onPressed: _contacterWhatsApp,
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: const Color(0xFF25D366), 
+                  foregroundColor: Colors.white, 
+                  side: const BorderSide(color: Color(0xFF25D366), width: 2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: const Icon(Icons.wechat, size: 26), 
+                label: const Text(
+                  'Nous contacter sur WhatsApp',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 20),
           ],
         ),
       ),

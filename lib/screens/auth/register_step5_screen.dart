@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
-import 'register_step6_screen.dart'; // ✅ Remplace par le nom exact de ton fichier Étape 6
+import 'register_step6_screen.dart';
+
 class RegisterStep5Screen extends StatefulWidget {
-  final Map<String, dynamic> formData; // ✅ AJOUTE CETTE LIGNE
+  final Map<String, dynamic> formData;
 
   const RegisterStep5Screen({
     super.key, 
-    required this.formData, // ✅ AJOUTE CETTE LIGNE
+    required this.formData,
   });
 
   @override
@@ -19,13 +20,7 @@ class _RegisterStep5ScreenState extends State<RegisterStep5Screen> {
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
-
-  // État de validation
-  bool _hasMinLength = false;
-  bool _hasUppercase = false;
-  bool _hasDigit = false;
-  bool _hasSpecialChar = false;
-  bool _passwordsMatch = false;
+  bool _passwordsMatch = true; // Pour afficher une erreur simple si ça ne correspond pas
 
   @override
   void dispose() {
@@ -34,70 +29,18 @@ class _RegisterStep5ScreenState extends State<RegisterStep5Screen> {
     super.dispose();
   }
 
-  void _validatePassword(String password) {
+  // Vérification simple : les deux champs doivent être identiques
+  void _checkPasswordsMatch() {
     setState(() {
-      _hasMinLength = password.length >= 8;
-      _hasUppercase = password.contains(RegExp(r'[A-Z]'));
-      _hasDigit = password.contains(RegExp(r'[0-9]'));
-      _hasSpecialChar = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
-      _passwordsMatch = password == _confirmPasswordController.text && password.isNotEmpty;
+      _passwordsMatch = _passwordController.text == _confirmPasswordController.text || _confirmPasswordController.text.isEmpty;
     });
   }
 
-  void _validateConfirmPassword(String confirmPassword) {
-    setState(() {
-      _passwordsMatch = confirmPassword == _passwordController.text && confirmPassword.isNotEmpty;
-    });
-  }
-
-  // Calcul de la force du mot de passe (0 à 4)
-  int get _passwordStrength {
-    int strength = 0;
-    if (_hasMinLength) strength++;
-    if (_hasUppercase) strength++;
-    if (_hasDigit) strength++;
-    if (_hasSpecialChar) strength++;
-    return strength;
-  }
-
-  String get _strengthLabel {
-    switch (_passwordStrength) {
-      case 0:
-        return '';
-      case 1:
-        return 'Faible';
-      case 2:
-        return 'Moyen';
-      case 3:
-        return 'Bon';
-      case 4:
-        return 'Fort';
-      default:
-        return '';
-    }
-  }
-
-  Color get _strengthColor {
-    switch (_passwordStrength) {
-      case 1:
-        return Colors.red;
-      case 2:
-        return Colors.orange;
-      case 3:
-        return Colors.yellow;
-      case 4:
-        return const Color(0xFF22C55E); // Vert
-      default:
-        return const Color(0xFFE5E7EB);
-    }
-  }
-
+  // On peut avancer si les deux champs sont remplis et identiques
   bool get _canProceed {
-    return _hasMinLength &&
-        _hasUppercase &&
-        _hasDigit &&
-        _hasSpecialChar &&
-        _passwordsMatch;
+    return _passwordController.text.isNotEmpty && 
+           _confirmPasswordController.text.isNotEmpty && 
+           _passwordController.text == _confirmPasswordController.text;
   }
 
   @override
@@ -149,7 +92,7 @@ class _RegisterStep5ScreenState extends State<RegisterStep5Screen> {
               ),
               const SizedBox(height: 32),
 
-              // TITRE ET SOUS-TITRE
+              // TITRE ET SOUS-TITRE SIMPLIFIÉS
               const Text(
                 'Sécurité du compte',
                 style: TextStyle(
@@ -160,7 +103,7 @@ class _RegisterStep5ScreenState extends State<RegisterStep5Screen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Créez un mot de passe sécurisé.',
+                'Choisissez un mot de passe pour votre compte.',
                 style: TextStyle(
                   fontSize: 14,
                   color: Color(0xFF6B7280),
@@ -187,7 +130,7 @@ class _RegisterStep5ScreenState extends State<RegisterStep5Screen> {
                       TextFormField(
                         controller: _passwordController,
                         obscureText: !_isPasswordVisible,
-                        onChanged: _validatePassword,
+                        onChanged: (_) => _checkPasswordsMatch(),
                         decoration: InputDecoration(
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -200,7 +143,7 @@ class _RegisterStep5ScreenState extends State<RegisterStep5Screen> {
                               });
                             },
                           ),
-                          hintText: '••••••••',
+                          hintText: 'Entrez votre mot de passe',
                           hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
                           filled: true,
                           fillColor: Colors.white,
@@ -219,16 +162,6 @@ class _RegisterStep5ScreenState extends State<RegisterStep5Screen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-
-                      // LISTE DE VALIDATION
-                      _buildValidationItem('Au moins 8 caractères', _hasMinLength),
-                      const SizedBox(height: 8),
-                      _buildValidationItem('Contient une lettre majuscule', _hasUppercase),
-                      const SizedBox(height: 8),
-                      _buildValidationItem('Contient un chiffre', _hasDigit),
-                      const SizedBox(height: 8),
-                      _buildValidationItem('Contient un caractère spécial', _hasSpecialChar),
                       const SizedBox(height: 24),
 
                       // CHAMP CONFIRMER LE MOT DE PASSE
@@ -244,7 +177,7 @@ class _RegisterStep5ScreenState extends State<RegisterStep5Screen> {
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: !_isConfirmPasswordVisible,
-                        onChanged: _validateConfirmPassword,
+                        onChanged: (_) => _checkPasswordsMatch(),
                         decoration: InputDecoration(
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -257,7 +190,7 @@ class _RegisterStep5ScreenState extends State<RegisterStep5Screen> {
                               });
                             },
                           ),
-                          hintText: '••••••••',
+                          hintText: 'Confirmez votre mot de passe',
                           hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
                           filled: true,
                           fillColor: Colors.white,
@@ -274,48 +207,11 @@ class _RegisterStep5ScreenState extends State<RegisterStep5Screen> {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(color: Color(0xFF0F2B5B), width: 2),
                           ),
+                          // ✅ Affiche une erreur rouge simple uniquement si les mots de passe ne correspondent pas
+                          errorText: (!_passwordsMatch && _confirmPasswordController.text.isNotEmpty) 
+                              ? 'Les mots de passe ne correspondent pas' 
+                              : null,
                         ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // BARRE DE FORCE DU MOT DE PASSE
-                      const Text(
-                        'Force du mot de passe',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF374151),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Row(
-                              children: List.generate(4, (index) {
-                                return Expanded(
-                                  child: Container(
-                                    height: 6,
-                                    margin: const EdgeInsets.only(right: 4),
-                                    decoration: BoxDecoration(
-                                      color: index < _passwordStrength ? _strengthColor : const Color(0xFFE5E7EB),
-                                      borderRadius: BorderRadius.circular(3),
-                                    ),
-                                  ),
-                                );
-                              }),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            _strengthLabel,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: _strengthColor,
-                            ),
-                          ),
-                        ],
                       ),
                       const SizedBox(height: 32),
 
@@ -339,25 +235,21 @@ class _RegisterStep5ScreenState extends State<RegisterStep5Screen> {
                           Expanded(
                             flex: 2,
                             child: ElevatedButton(
-                                                           onPressed: _canProceed
+                              onPressed: _canProceed
                                   ? () {
-                                      // ✅ 1. On récupère le sac à dos des étapes précédentes
                                       Map<String, dynamic> updatedData = Map.from(widget.formData);
-                                      
-                                      // ✅ 2. On y ajoute le mot de passe qu'on vient de valider
                                       updatedData['password'] = _passwordController.text;
                                       
-                                      // ✅ 3. On navigue vers l'Étape 6 en lui passant le sac à dos COMPLET
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (_) => RegisterStep6Screen(formData: updatedData), // ✅ CORRIGÉ
+                                          builder: (_) => RegisterStep6Screen(formData: updatedData),
                                         ),
                                       );
                                     }
                                   : null,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(255, 6, 6, 7),
+                                backgroundColor: AppColors.primary, // Couleur cohérente avec le reste de l'app
                                 disabledBackgroundColor: const Color(0xFF9CA3AF),
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -383,28 +275,6 @@ class _RegisterStep5ScreenState extends State<RegisterStep5Screen> {
           ),
         ),
       ),
-    );
-  }
-
-  // WIDGET POUR LES ITEMS DE VALIDATION
-  Widget _buildValidationItem(String text, bool isValid) {
-    return Row(
-      children: [
-        Icon(
-          isValid ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: isValid ? const Color(0xFF22C55E) : const Color(0xFF9CA3AF),
-          size: 18,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 13,
-            color: isValid ? const Color(0xFF22C55E) : const Color(0xFF6B7280),
-            fontWeight: isValid ? FontWeight.w500 : FontWeight.normal,
-          ),
-        ),
-      ],
     );
   }
 }

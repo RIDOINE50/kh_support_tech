@@ -10,7 +10,8 @@ import 'screens/services/services_screen.dart';
 import 'screens/formations/formations_screen.dart';
 import 'core/constants/app_routes.dart';
 
-final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
+// 🌓 Notifier global pour contrôler le thème dynamiquement dans toute l'application
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -23,7 +24,7 @@ class MyHttpOverrides extends HttpOverrides {
 void main() {
   HttpOverrides.global = MyHttpOverrides();
   
-  // ✅ On lance directement l'application sans le cadre de simulation
+  // ✅ On lance directement l'application
   runApp(const MyApp());
 }
 
@@ -36,6 +37,9 @@ class MyApp extends StatelessWidget {
       valueListenable: themeNotifier,
       builder: (context, currentThemeMode, _) {
         return MaterialApp(
+          // ✅ CHANGEMENT DU NOM DE L'APPLICATION ICI
+          title: 'KH SERVICES', 
+          
           debugShowCheckedModeBanner: false,
           themeMode: currentThemeMode,
           
@@ -44,6 +48,7 @@ class MyApp extends StatelessWidget {
             primaryColor: const Color(0xFF0F2B5B),
             scaffoldBackgroundColor: Colors.white,
             brightness: Brightness.light,
+            cardColor: Colors.white,
             appBarTheme: const AppBarTheme(
               backgroundColor: Color(0xFF0F2B5B),
               foregroundColor: Colors.white,
@@ -55,6 +60,7 @@ class MyApp extends StatelessWidget {
             primaryColor: const Color(0xFF0F2B5B),
             scaffoldBackgroundColor: const Color(0xFF121212),
             brightness: Brightness.dark,
+            cardColor: const Color(0xFF1E1E1E),
             appBarTheme: const AppBarTheme(
               backgroundColor: Color(0xFF1F1F1F),
               foregroundColor: Colors.white,

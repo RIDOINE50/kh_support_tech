@@ -53,8 +53,7 @@ class _SplashScreenState extends State<SplashScreen> {
         Navigator.pushReplacementNamed(context, AppRoutes.login);
       }
     } catch (e) {
-      // 4. SÉCURITÉ : Si une erreur se produit (ex: route manquante ou storage planté), 
-      // on force la redirection vers le Login pour ne JAMAIS bloquer l'utilisateur.
+      // 4. SÉCURITÉ : Si une erreur se produit, on force la redirection vers le Login
       print("❌ [SPLASH] ERREUR CRITIQUE : $e");
       if (mounted) {
         print("⚠️ [SPLASH] Fallback : Redirection forcée vers Login");
@@ -83,6 +82,9 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // ✅ 1. AJOUT D'UN SPACER EN HAUT POUR POUSSER LE CONTENU VERS LE BAS
+              const Spacer(), 
+              
               Container(
                 width: 120,
                 height: 120,
@@ -109,8 +111,10 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
               ),
               const SizedBox(height: 30),
+              
+              // ✅ 2. CHANGEMENT DU NOM EN "KH SERVICES"
               const Text(
-                'KH SUPPORT TECH',
+                'KH SERVICES',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -138,6 +142,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   _buildLoadingDot(2),
                 ],
               ),
+              
               const Spacer(),
               const Padding(
                 padding: EdgeInsets.only(bottom: 40),

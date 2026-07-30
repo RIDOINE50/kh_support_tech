@@ -29,8 +29,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ CORRECTION : On force le thème CLAIR pour cet écran uniquement
-    // Peu importe le mode du téléphone, cet écran restera toujours blanc et lisible
     return Theme(
       data: ThemeData.light(), 
       child: Scaffold(
@@ -45,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: ClipPath(
                 clipper: _TopWaveClipper(),
                 child: Container(
-                  height: 280,
+                  height: 320,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
@@ -58,47 +56,62 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.all(24.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 5),
+                          
+                          // LOGO EN IMAGE
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(8),
                             decoration: const BoxDecoration(
                               color: Colors.white,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
-                              Icons.language,
-                              color: Color(0xFF0F2B5B),
-                              size: 32,
+                            child: ClipOval(
+                              child: Image.asset(
+                                'assets/images/logo.png',
+                                height: 42,
+                                width: 42,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(
+                                    Icons.language,
+                                    color: Color(0xFF0F2B5B),
+                                    size: 32,
+                                  );
+                                },
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 6),
+                          
                           const Text(
                             'KH',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 32,
+                              fontSize: 26,
                               fontWeight: FontWeight.bold,
+                              letterSpacing: 1.1,
                             ),
                           ),
                           const Text(
                             'SUPPORT TECH',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 14,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 1.5,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 4),
                           const Text(
                             'Solutions informatiques & numériques\npour tous.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.white70,
-                              fontSize: 12,
+                              fontSize: 10.5,
                             ),
                           ),
                         ],
@@ -109,9 +122,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            // CONTENU PRINCIPAL
+            // CONTENU PRINCIPAL DU FORMULAIRE
             SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 290, 24, 40),
+              padding: const EdgeInsets.fromLTRB(24, 315, 24, 40),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -125,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: Color(0xFF0F2B5B),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
 
                     // Champ Email
                     const Text(
@@ -166,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         fillColor: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
 
                     // Champ Mot de passe
                     const Text(
@@ -218,7 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         fillColor: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
 
                     // Checkbox Se souvenir de moi
                     Row(
@@ -244,7 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
                     // Bouton Se connecter
                     SizedBox(
@@ -278,7 +291,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
                     // Séparateur "ou"
                     Row(
@@ -297,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
                     // Bouton Créer un compte
                     SizedBox(
@@ -326,7 +339,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
 
                     // Mot de passe oublié
                     Center(
@@ -354,61 +367,30 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-
-            // VAGUE BLEUE EN BAS
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: ClipPath(
-                clipper: _BottomWaveClipper(),
-                child: Container(
-                  height: 100,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF0F2B5B),
-                        Color(0xFF1E4D8B),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ),
-    ); // ✅ Fin du Theme
+    );
   }
 
   Future<void> _handleLogin() async {
-    print("🔵 [LOGIN] 1. Le bouton a été cliqué !");
-
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) {
-      print("🔴 [LOGIN] 2. Échec de la validation. Vérifie les champs vides.");
       return;
     }
 
-    print("🟡 [LOGIN] 3. Formulaire valide. Activation du chargement...");
     setState(() => _isLoading = true);
 
     try {
       String email = _emailController.text.trim();
       String password = _passwordController.text;
 
-      print("🟡 [LOGIN] 4. Envoi des données à l'API pour : $email");
       AuthService authService = AuthService();
       var result = await authService.login(email, password);
       
-      print("🟢 [LOGIN] 5. Réponse de l'API reçue : $result");
-
       if (!mounted) return;
 
       if (result['success'] == true) {
-        print("✅ [LOGIN] Connexion réussie, sauvegarde du token...");
         try {
           final prefs = await SharedPreferences.getInstance();
           final token = result['token'] ?? result['access_token'];
@@ -420,7 +402,7 @@ class _LoginScreenState extends State<LoginScreen> {
             await prefs.setString('email', result['user']['email'].toString());
           }
         } catch (e) {
-          print("❌ [LOGIN] Erreur lors de la sauvegarde locale : $e");
+          debugPrint("Erreur sauvegarde locale : $e");
         }
 
         if (!mounted) return;
@@ -438,7 +420,6 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (context) => const MainScreen()),
         );
       } else {
-        print("⚠️ [LOGIN] L'API a refusé la connexion : ${result['error']}");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('❌ ${result['error'] ?? 'Email ou mot de passe incorrect'}'),
@@ -448,7 +429,6 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
-      print("🔴 [LOGIN] ERREUR FATALE LORS DE L'APPEL API : $e");
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -460,7 +440,6 @@ class _LoginScreenState extends State<LoginScreen> {
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
-        print("🔵 [LOGIN] 6. Chargement terminé.");
       }
     }
   }
@@ -471,26 +450,9 @@ class _TopWaveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-    path.lineTo(0, size.height - 60);
-    path.quadraticBezierTo(size.width / 2, size.height + 20, size.width, size.height - 60);
+    path.lineTo(0, size.height - 50);
+    path.quadraticBezierTo(size.width / 2, size.height + 20, size.width, size.height - 50);
     path.lineTo(size.width, 0);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
-}
-
-// CLIPPER POUR LA VAGUE DU BAS
-class _BottomWaveClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.moveTo(0, 60);
-    path.quadraticBezierTo(size.width / 2, -20, size.width, 60);
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
     path.close();
     return path;
   }

@@ -29,12 +29,13 @@ class CustomDrawer extends StatelessWidget {
           // 1. HEADER PROFESSIONNEL AVEC LOGO KH
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.only(top: 40, bottom: 20, left: 20, right: 20),
+            // ✅ CORRECTION ICI : On augmente le 'top' à 60 et les côtés à 24 pour aérer le design
+            padding: const EdgeInsets.only(top: 60, bottom: 24, left: 24, right: 24),
             decoration: const BoxDecoration(
               color: AppColors.primary,
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(20),
-                bottomRight: Radius.circular(20),
+                bottomLeft: Radius.circular(24), // ✅ Arrondi légèrement plus prononcé pour l'élégance
+                bottomRight: Radius.circular(24),
               ),
             ),
             child: Column(
@@ -84,19 +85,18 @@ class CustomDrawer extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 16),
+          // ✅ On garde un petit espace entre le header bleu et le premier élément du menu
+          const SizedBox(height: 12),
 
           // 2. LISTE DES ITEMS DU MENU
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               children: [
-                
                 _DrawerMenuItem(icon: Icons.event_available_outlined, title: 'Programmes', defaultTextColor: textColor, defaultIconColor: defaultIconColor, onTap: () => onMenuItemTap('programmes')),
                 _DrawerMenuItem(icon: Icons.shopping_bag_outlined, title: 'Marché et Achats', defaultTextColor: textColor, defaultIconColor: defaultIconColor, onTap: () => onMenuItemTap('marche_achat')),
                 _DrawerMenuItem(icon: Icons.storefront_outlined, title: 'Boutique', defaultTextColor: textColor, defaultIconColor: defaultIconColor, onTap: () => onMenuItemTap('boutique')),
                 _DrawerMenuItem(icon: Icons.headset_mic_outlined, title: 'Assistance', defaultTextColor: textColor, defaultIconColor: defaultIconColor, onTap: () => onMenuItemTap('assistance')),
-    
                 _DrawerMenuItem(icon: Icons.info_outline, title: 'À propos', defaultTextColor: textColor, defaultIconColor: defaultIconColor, onTap: () => onMenuItemTap('apropos')),
                 _DrawerMenuItem(icon: Icons.settings_outlined, title: 'Paramètres', defaultTextColor: textColor, defaultIconColor: defaultIconColor, onTap: () => onMenuItemTap('parametres')),
                 
@@ -108,8 +108,8 @@ class CustomDrawer extends StatelessWidget {
                   title: 'Déconnexion',
                   textColor: Colors.red,
                   iconColor: Colors.red,
-                  defaultTextColor: textColor,       // ✅ AJOUTÉ POUR CORRIGER L'ERREUR
-                  defaultIconColor: defaultIconColor, // ✅ AJOUTÉ POUR CORRIGER L'ERREUR
+                  defaultTextColor: textColor,
+                  defaultIconColor: defaultIconColor,
                   onTap: () => onMenuItemTap('deconnexion'),
                 ),
               ],
