@@ -45,7 +45,6 @@ class _ServicesScreenState extends State<ServicesScreen> {
     }
   }
 
-  // ✅ 2. MÉTHODE INFAILLIBLE POUR RETOURNER À L'ACCUEIL (MainScreen)
   void _goToHome() {
     Navigator.pushAndRemoveUntil(
       context,
@@ -54,16 +53,13 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
   }
 
-  // ✅ FONCTION POUR OUVRIR WHATSAPP (Numéro mis à jour)
+  // ✅ FONCTION POUR OUVRIR WHATSAPP (Vers le 01 61 12 71 45)
   Future<void> _lancerContact(String serviceName) async {
-    // ✅ NUMÉRO CORRIGÉ ICI
     final String numeroWhatsApp = '2290161127145'; 
     final String message = Uri.encodeComponent('Bonjour, je suis intéressé par le service : "$serviceName". Pouvez-vous me donner plus de détails ?');
     final Uri url = Uri.parse('https://wa.me/$numeroWhatsApp?text=$message');
 
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Impossible d\'ouvrir WhatsApp. Vérifiez que l\'application est installée.')),
@@ -85,7 +81,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     final shadowColor = Colors.black.withOpacity(isDark ? 0.3 : 0.08);
 
     const double imageWidth = 112;
-    const double imageHeight = 135; 
+    const double imageHeight = 112; 
 
     return Scaffold(
       backgroundColor: bgColor,

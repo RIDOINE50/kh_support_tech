@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:flutter/services.dart'; // Pour copier le numéro
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
-import 'package:shared_preferences/shared_preferences.dart'; 
-import '../../services/auth_service.dart'; // Ajuste le chemin selon l'emplacement de ton fichier
-// Si vous utilisez SharedPreferences
+
 class PaymentScreen extends StatefulWidget {
   final String formationTitle;
   final int formationId;
@@ -22,113 +20,57 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  String selectedMethod = 'momo';
-  final TextEditingController phoneController = TextEditingController();
-  bool isLoading = false;
+  // Numéro MoMo de l'entreprise (Format international pour le lien, format local pour l'affichage)
+  static const String momoNumberDisplay = '01 57 86 59 09';
+  static const String momoNumberLink = '2290157865909';
+  static const String momoName = 'KH SERVICES';
+
+  bool _isNumberCopied = false;
 
   @override
   void dispose() {
-    phoneController.dispose();
     super.dispose();
   }
-// Si vous utilisez SharedPreferences
 
-// ... dans votre méthode _processPayment() :
-
-void _processPayment() async {
-  if (selectedMethod == 'momo' && phoneController.text.trim().isEmpty) {
-    _showErrorSnackBar('Veuillez entrer votre numéro de téléphone');
-    return;
-  }
-
-  setState(() => isLoading = true);
-
-  // 1. Préparer les données de l'inscription
-  final inscriptionData = {
-    'formation_id': widget.formationId,
-    'montant': widget.montant,
-    'mode_paiement': selectedMethod,
-    'telephone': phoneController.text.trim(),
-  };
-
-  try {
-    // 2. Appeler ton AuthService (qui va chercher le token et appeler l'API de façon sécurisée)
-    final authService = AuthService();
-    final resultat = await authService.inscrireAFormation(inscriptionData);
-
-    print("--- RÉPONSE DU SERVEUR ---");
-    print("Résultat : $resultat");
-
-    if (!mounted) return;
-    setState(() => isLoading = false);
-
-    // 3. Traiter le résultat renvoyé par AuthService
-    if (resultat['success'] == true) {
-      _showSuccessDialog();
-    } else {
-      // Si le serveur renvoie une erreur (ou 401 gérée par le service)
-      String errorMessage = resultat['error'] ?? 'Erreur lors du traitement';
-      if (errorMessage.contains('401') || errorMessage.contains('connecté')) {
-        _showErrorSnackBar('Session expirée ou non connecté. Veuillez vous reconnecter.');
-      } else {
-        _showErrorSnackBar(errorMessage);
-      }
-    }
-  } catch (e) {
-    if (!mounted) return;
-    setState(() => isLoading = false);
-    _showErrorSnackBar('Erreur : $e');
-  }
-}
-
-  void _showErrorSnackBar(String message) {
+  // ✅ 1. Fonction pour copier le numéro MoMo
+  void _copierNumero() {
+    Clipboard.setData(const ClipboardData(text: '0157865909'));
+    setState(() => _isNumberCopied = true);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.check_circle, color: Colors.green, size: 64),
-            const SizedBox(height: 16),
-            const Text(
-              'Paiement Réussi !',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Votre inscription à "${widget.formationTitle}" a été enregistrée avec succès.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
-                ),
-                child: const Text('Terminer', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
+      const SnackBar(
+        content: Text('Numéro copié dans le presse-papier !'),
+        backgroundColor: AppColors.primary,
+        duration: Duration(seconds: 2),
       ),
     );
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _isNumberCopied = false);
+    });
+  }
+
+  // ✅ 2. Fonction pour ouvrir WhatsApp avec le message pré-rempli (Corrigée)
+  Future<void> _envoyerPreuveWhatsApp() async {
+    final String message = 'Bonjour KH SERVICES. 👋\n\n'
+        'Je viens d\'effectuer le paiement de *${widget.montant.toStringAsFixed(0)} FCFA* \n'
+        'pour la formation : *${widget.formationTitle}*.\n\n'
+        'Veuillez trouver ci-joint la capture d\'écran de mon reçu de transaction.\n'
+        'Merci de bien vouloir valider mon inscription.';
+
+    final Uri url = Uri.parse('https://wa.me/$momoNumberLink?text=${Uri.encodeComponent(message)}');
+
+    // Utilisation de platformDefault (ou suppression du mode) pour assurer une ouverture fluide
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.platformDefault);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Impossible d\'ouvrir WhatsApp. Vérifiez qu\'il est installé.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -143,7 +85,7 @@ void _processPayment() async {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Paiement sécurisé',
+          'Paiement Mobile Money',
           style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
@@ -153,7 +95,11 @@ void _processPayment() async {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Récapitulatif', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            // 1. RÉCAPITULATIF
+            const Text(
+              'Récapitulatif',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(20),
@@ -185,51 +131,80 @@ void _processPayment() async {
                 ],
               ),
             ),
+            
             const SizedBox(height: 28),
-            const Text('Moyen de paiement', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-            const SizedBox(height: 12),
-            _buildPaymentOption(
-              id: 'momo',
-              title: 'Mobile Money',
-              subtitle: 'MTN, Moov, Orange, Wave...',
-              icon: Icons.phone_android,
+
+            // 2. INSTRUCTIONS DE PAIEMENT MOMO
+            const Text(
+              'Instructions de paiement',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 12),
-            _buildPaymentOption(
-              id: 'card',
-              title: 'Carte Bancaire',
-              subtitle: 'Visa, Mastercard',
-              icon: Icons.credit_card,
-            ),
-            const SizedBox(height: 28),
-            if (selectedMethod == 'momo') ...[
-              const Text('Numéro de téléphone', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-              const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [_softShadow],
-                ),
-                child: TextField(
-                  controller: phoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    hintText: 'Ex: +225 07 00 00 00 00',
-                    prefixIcon: const Icon(Icons.phone, color: AppColors.primary),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                ),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.blue.shade200),
+                boxShadow: [_softShadow],
               ),
-            ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Veuillez effectuer un transfert Mobile Money (MTN, Moov, Celtiis, Wave) vers :',
+                    style: TextStyle(fontSize: 13, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            momoName,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          ),
+                          Text(
+                            momoNumberDisplay,
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
+                          ),
+                        ],
+                      ),
+                      ElevatedButton(
+                        onPressed: _copierNumero,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _isNumberCopied ? Colors.green : AppColors.primary,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                        child: Text(
+                          _isNumberCopied ? 'Copié !' : 'Copier',
+                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // 3. ÉTAPES À SUIVRE
+            _buildStep('1', 'Faites le transfert du montant exact sur le numéro ci-dessus.'),
+            const SizedBox(height: 12),
+            _buildStep('2', 'Prenez une capture d\'écran du reçu de la transaction.'),
+            const SizedBox(height: 12),
+            _buildStep('3', 'Cliquez sur le bouton vert ci-dessous pour nous envoyer la preuve.'),
+            
+            const SizedBox(height: 40),
           ],
         ),
       ),
+
+      // 4. BOUTON D'ACTION WHATSAPP
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -241,19 +216,18 @@ void _processPayment() async {
         child: SafeArea(
           child: SizedBox(
             height: 54,
-            child: ElevatedButton(
-              onPressed: isLoading ? null : _processPayment,
+            child: ElevatedButton.icon(
+              onPressed: _envoyerPreuveWhatsApp,
+              icon: const Icon(Icons.chat_bubble_rounded, color: Colors.white, size: 24),
+              label: const Text(
+                'J\'ai payé, envoyer la preuve',
+                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: const Color(0xFF25D366),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),
-              child: isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : Text(
-                      'Payer ${widget.montant.toStringAsFixed(0)} FCFA',
-                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
             ),
           ),
         ),
@@ -261,58 +235,32 @@ void _processPayment() async {
     );
   }
 
-  Widget _buildPaymentOption({
-    required String id,
-    required String title,
-    required String subtitle,
-    required IconData icon,
-  }) {
-    final isSelected = selectedMethod == id;
-
-    return GestureDetector(
-      onTap: () => setState(() => selectedMethod = id),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.transparent,
-            width: 2,
+  Widget _buildStep(String number, String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 26,
+          height: 26,
+          decoration: const BoxDecoration(
+            color: AppColors.primary,
+            shape: BoxShape.circle,
           ),
-          boxShadow: [_softShadow],
+          child: Center(
+            child: Text(
+              number,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+          ),
         ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: (isSelected ? AppColors.primary : Colors.grey).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: isSelected ? AppColors.primary : Colors.grey, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary)),
-                  const SizedBox(height: 2),
-                  Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                ],
-              ),
-            ),
-            Radio<String>(
-              value: id,
-              groupValue: selectedMethod,
-              activeColor: AppColors.primary,
-              onChanged: (val) => setState(() => selectedMethod = val!),
-            ),
-          ],
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.4),
+          ),
         ),
-      ),
+      ],
     );
   }
 

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart'; // ✅ Pour ouvrir Google Maps
+import 'package:url_launcher/url_launcher.dart';
 
 class AProposScreen extends StatelessWidget {
   const AProposScreen({super.key});
 
   // ✅ Fonction pour ouvrir directement Google Maps
   Future<void> _openMaps() async {
-    // J'ai corrigé "goc.gl" en "goo.gl" qui est le format correct de Google Maps
     final Uri url = Uri.parse('https://maps.app.goo.gl/kGdbJj3soUckbsJa7');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       debugPrint('Impossible d\'ouvrir Google Maps');
@@ -21,7 +20,7 @@ class AProposScreen extends StatelessWidget {
     );
   }
 
-  // ✅ Fonction pour les détails texte (Présentation, Mission, Partenaires)
+  // ✅ Fonction pour les détails texte
   void _goToDetail(BuildContext context, String title, String content) {
     Navigator.push(
       context,
@@ -36,7 +35,7 @@ class AProposScreen extends StatelessWidget {
     final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
     final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87;
     final subTextColor = Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey;
-    final dividerColor = Theme.of(context).dividerColor ?? Colors.grey.shade300;
+    final dividerColor = Theme.of(context).dividerColor;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -57,11 +56,7 @@ class AProposScreen extends StatelessWidget {
                     child: Text(
                       'À propos',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
                     ),
                   ),
                   const SizedBox(width: 36),
@@ -69,7 +64,7 @@ class AProposScreen extends StatelessWidget {
               ),
             ),
 
-            // LISTE DES ITEMS (Nettoyée)
+            // LISTE DES ITEMS
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -109,7 +104,7 @@ class AProposScreen extends StatelessWidget {
                     textColor: textColor,
                     subTextColor: subTextColor,
                     dividerColor: dividerColor,
-                    onTap: () => _goToTeamImages(context), // ✅ Ouvre l'écran des images
+                    onTap: () => _goToTeamImages(context),
                   ),
                   _AboutMenuItem(
                     icon: Icons.handshake_outlined,
@@ -131,7 +126,7 @@ class AProposScreen extends StatelessWidget {
                     textColor: textColor,
                     subTextColor: subTextColor,
                     dividerColor: dividerColor,
-                    onTap: _openMaps, // ✅ Ouvre directement Google Maps
+                    onTap: _openMaps,
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -145,7 +140,7 @@ class AProposScreen extends StatelessWidget {
 }
 
 // ==========================================
-// ÉCRAN POUR LES IMAGES DE L'ÉQUIPE (LOCAL)
+// ✅ ÉCRAN POUR LES 4 IMAGES AVEC LEURS LÉGENDES
 // ==========================================
 class TeamImagesScreen extends StatelessWidget {
   const TeamImagesScreen({Key? key}) : super(key: key);
@@ -182,30 +177,34 @@ class TeamImagesScreen extends StatelessWidget {
               ),
             ),
             
-            // Zone des images
+            // Zone des 4 images avec légendes personnalisées
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    // ✅ PLACEHOLDER 1 : Remplace 'assets/images/equipe1.jpg' par ton vrai fichier local
-                    _ImagePlaceholder(
-                      imagePath: 'assets/images/equipe1.jpg', // <-- Mets ton image locale ici
-                      label: 'Photo de l\'équipe 1',
+                    _buildTeamPhoto(
+                      context, 
+                      'assets/images/equipe1.jpeg', 
+                      'Les élèves regroupés pour une belle photo de fin de formation 🎉',
                     ),
-                    const SizedBox(height: 16),
-                    
-                    // ✅ PLACEHOLDER 2
-                    _ImagePlaceholder(
-                      imagePath: 'assets/images/equipe2.jpg', // <-- Mets ton image locale ici
-                      label: 'Photo de l\'équipe 2',
+                    const SizedBox(height: 20),
+                    _buildTeamPhoto(
+                      context, 
+                      'assets/images/equipe2.jpeg', 
+                      'Immersion en plein atelier de programmation et codage 💻',
                     ),
-                    const SizedBox(height: 16),
-                    
-                    // ✅ PLACEHOLDER 3
-                    _ImagePlaceholder(
-                      imagePath: 'assets/images/equipe3.jpg', // <-- Mets ton image locale ici
-                      label: 'Photo de l\'équipe 3',
+                    const SizedBox(height: 20),
+                    _buildTeamPhoto(
+                      context, 
+                      'assets/images/equipe3.jpeg', 
+                      'Travail collaboratif et partage de compétences entre passionnés 🚀',
+                    ),
+                    const SizedBox(height: 20),
+                    _buildTeamPhoto(
+                      context, 
+                      'assets/images/equipe4.jpeg', 
+                      'Notre équipe d\'encadreurs et de formateurs engagés pour votre réussite ✨',
                     ),
                   ],
                 ),
@@ -216,57 +215,63 @@ class TeamImagesScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-// Widget pour afficher une image locale avec un fallback si l'image n'existe pas encore
-class _ImagePlaceholder extends StatelessWidget {
-  final String imagePath;
-  final String label;
-
-  const _ImagePlaceholder({required this.imagePath, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
+  // ✅ Widget sécurisé pour afficher l'image et sa légende en dessous
+  Widget _buildTeamPhoto(BuildContext context, String assetPath, String label) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final placeholderColor = isDark ? Colors.grey[800] : Colors.grey[200];
-    final textColor = isDark ? Colors.grey[400] : Colors.grey[600];
+    final errorTextColor = isDark ? Colors.grey[400] : Colors.grey[600];
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87;
 
-    return Container(
-      width: double.infinity,
-      height: 200,
-      decoration: BoxDecoration(
-        color: placeholderColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Image.asset(
-          imagePath,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            // Si l'image n'est pas encore ajoutée, affiche ce texte
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.image_outlined, size: 40, color: textColor),
-                  const SizedBox(height: 8),
-                  Text(label, style: TextStyle(color: textColor, fontWeight: FontWeight.w500)),
-                  const SizedBox(height: 4),
-                  Text('(Ajouter dans pubspec.yaml)', style: TextStyle(color: textColor, fontSize: 12)),
-                ],
-              ),
-            );
-          },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset(
+            assetPath,
+            width: double.infinity,
+            height: 220,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                width: double.infinity,
+                height: 220,
+                decoration: BoxDecoration(
+                  color: placeholderColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.image_outlined, size: 40, color: errorTextColor),
+                      const SizedBox(height: 8),
+                      Text(label, style: TextStyle(color: errorTextColor, fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
         ),
-      ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: textColor.withOpacity(0.85),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
 
-// ==========================================
-// WIDGET RÉUTILISABLE POUR LES ITEMS DU MENU
-// ==========================================
 class _AboutMenuItem extends StatelessWidget {
   final IconData icon;
   final String title;

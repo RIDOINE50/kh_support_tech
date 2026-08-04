@@ -6,24 +6,30 @@ import 'programme_detail_screen.dart';
 class ProgrammesScreen extends StatelessWidget {
   const ProgrammesScreen({Key? key}) : super(key: key);
 
-  // 🛠️ Fonction utilitaire corrigée pour gérer les liens complets et les chemins relatifs
+  // 🛠️ Fonction nettoyée : si le backend rajoute du texte avant un lien http/https, on extrait la vraie URL
   String? _getImageUrl(String? imagePath) {
     if (imagePath == null || imagePath.trim().isEmpty) {
       print('--- IMAGE : Aucun chemin d\'image trouvé (null ou vide) ---');
       return null;
     }
     
-    print('--- IMAGE REÇUE DE L\'ADMIN : $imagePath ---');
+    print('--- IMAGE REÇUE DE L\'API : $imagePath ---');
     
-    // Si l'URL est déjà complète (ex: https://picsum.photos/...), on la retourne directement
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      return imagePath;
+    // Si l'URL contient un lien http ou https, on extrait proprement l'URL valide (pour contrer le backend Laravel)
+    if (imagePath.contains('http://') || imagePath.contains('https://')) {
+      int httpIndex = imagePath.indexOf('http://');
+      if (httpIndex == -1) {
+        httpIndex = imagePath.indexOf('https://');
+      }
+      String cleanUrl = imagePath.substring(httpIndex);
+      print('--- URL WEB PROPRE EXTRAITE : $cleanUrl ---');
+      return cleanUrl;
     }
     
-    // Domaine de base de ton backend Railway
+    // Domaine de base de votre backend Railway pour les fichiers stockés localement
     const String baseUrl = 'https://kh-support-backend-production.up.railway.app';
     
-    // Si c'est un chemin relatif venant de la base de données, on ajoute /storage/
+    // Si c'est un chemin relatif classique
     String finalUrl;
     if (imagePath.startsWith('/')) {
       finalUrl = '$baseUrl/storage$imagePath';
@@ -31,7 +37,7 @@ class ProgrammesScreen extends StatelessWidget {
       finalUrl = '$baseUrl/storage/$imagePath';
     }
     
-    print('--- URL FINALE GÉNÉRÉE : $finalUrl ---');
+    print('--- URL FINALE LOCALE GÉNÉRÉE : $finalUrl ---');
     return finalUrl;
   }
 
@@ -93,7 +99,7 @@ class ProgrammesScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Affichage de l'image envoyée par l'admin
+                      // Affichage de l'image
                       if (imageUrl != null)
                         ClipRRect(
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),

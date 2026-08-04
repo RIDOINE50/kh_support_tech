@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart'; // Nécessaire pour rediriger vers WhatsApp
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/widgets/custom_drawer.dart';
 import '../services/services_screen.dart';
@@ -16,7 +16,7 @@ import '../devis/mes_demandes_screen.dart';
 import '../devis/marche_achat_screen.dart';
 import '../profile/profile_screen.dart'; 
 
-// 🌓 Variable globale pour forcer le rafraîchissement instantané du thème
+// 🌓 Notifieur global pour le thème
 final ValueNotifier<ThemeMode> globalThemeNotifier = ValueNotifier(ThemeMode.light);
 
 class HomeScreen extends StatefulWidget {
@@ -75,7 +75,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Fonction pour ouvrir WhatsApp
   Future<void> _launchWhatsApp() async {
     const phoneNumber = '+2290161127145';
     final message = Uri.encodeComponent('Bonjour, j\'ai besoin d\'assistance depuis l\'application.');
@@ -97,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: globalThemeNotifier,
       builder: (context, currentThemeMode, child) {
-        final isDark = currentThemeMode == ThemeMode.dark;
+        final isDark = Theme.of(context).brightness == Brightness.dark || currentThemeMode == ThemeMode.dark;
         
         final textColor = isDark ? Colors.white : Colors.black87;
         final textSecondary = isDark ? Colors.white70 : Colors.black54;
@@ -119,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // HEADER (Éclairage / Lune du haut 3ème supprimé)
+                    // HEADER
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: Row(
@@ -151,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
 
-                    // 🌟 Banner Joyeux
+                    // BANNER
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 16),
                       padding: const EdgeInsets.all(20),
@@ -242,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     const SizedBox(height: 24),
 
-                    // Services populaires
+                    // SERVICES POPULAIRES
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Row(
@@ -260,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _isLoading ? _buildShimmer(135, shimmerColor) : _buildServices(textColor, cardColor, isDark),
                     const SizedBox(height: 24),
 
-                    // Formations populaires (Harmonisées au format exact des services : hauteur 135)
+                    // FORMATIONS POPULAIRES
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Row(
@@ -278,7 +277,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _isLoading ? _buildShimmer(135, shimmerColor) : _buildFormations(textColor, cardColor, isDark),
                     const SizedBox(height: 24),
 
-                    // Besoin d'aide (Redirige vers WhatsApp)
+                    // WHATSAPP
                     GestureDetector(
                       onTap: _launchWhatsApp,
                       child: Container(
@@ -318,7 +317,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     const SizedBox(height: 12),
 
-                    // Qualité & Fiabilité
+                    // FIABILITÉ
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 16),
                       padding: const EdgeInsets.all(18),
@@ -465,7 +464,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // 🎓 CARTE DE FORMATION HARMONISÉE EXACTEMENT COMME LES SERVICES (Hauteur 135)
   Widget _buildFormations(Color textColor, Color cardColor, bool isDark) {
     if (_popularFormations.isEmpty) {
       return SizedBox(height: 135, child: Center(child: Text('Aucune formation', style: TextStyle(color: textColor))));

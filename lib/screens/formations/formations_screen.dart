@@ -94,7 +94,6 @@ class _FormationsScreenState extends State<FormationsScreen> {
     }
   }
 
-  // ✅ 2. MÉTHODE INFAILLIBLE POUR RETOURNER À L'ACCUEIL (MainScreen)
   void _goToHome() {
     Navigator.pushAndRemoveUntil(
       context,
@@ -113,16 +112,13 @@ class _FormationsScreenState extends State<FormationsScreen> {
     }).toList();
   }
 
-  // ✅ FONCTION POUR OUVRIR WHATSAPP (Numéro mis à jour)
+  // ✅ FONCTION POUR OUVRIR WHATSAPP (Vers le 01 61 12 71 45)
   Future<void> _lancerContact(String titreFormation) async {
-    // ✅ NUMÉRO CORRIGÉ ICI
     final String numeroWhatsApp = '2290161127145'; 
     final String message = Uri.encodeComponent('Bonjour, je suis intéressé par la formation : "$titreFormation". Pouvez-vous me donner plus de détails ?');
     final Uri url = Uri.parse('https://wa.me/$numeroWhatsApp?text=$message');
 
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Impossible d\'ouvrir WhatsApp. Vérifiez que l\'application est installée.')),
@@ -146,7 +142,6 @@ class _FormationsScreenState extends State<FormationsScreen> {
     final placeholderIcon = isDark ? Colors.grey[400]! : const Color(0xFF9CA3AF);
 
     final listToDisplay = _filteredFormations;
-    
     const double imageSize = 112; 
 
     return Scaffold(
@@ -363,7 +358,7 @@ class _FormationsScreenState extends State<FormationsScreen> {
                                   formationTitle: formation.title,
                                   formationId: formation.id,
                                   montant: double.tryParse(formation.price.toString()) ?? 0.0,
-                                )
+                                ),
                               ),
                             );
                           },

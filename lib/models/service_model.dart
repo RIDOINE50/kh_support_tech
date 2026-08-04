@@ -18,13 +18,21 @@ class ServiceModel {
   });
 
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
+    // Récupère le prix peu importe le nom de la colonne dans Laravel ou le JSON
+    var rawPrix = json['prix_base'] ?? json['prixBase'] ?? json['prix'] ?? json['price'] ?? 0;
+    
+    int parsedPrix = 0;
+    if (rawPrix != null) {
+      parsedPrix = double.tryParse(rawPrix.toString())?.toInt() ?? 0;
+    }
+
     return ServiceModel(
       id: json['id'] ?? 0,
       nom: json['nom'] ?? '',
       description: json['description'] ?? '',
       categorie: json['categorie'] ?? '',
-      prixBase: json['prixBase'] ?? 0,
-      delaiIntervention: json['delaiIntervention'] ?? '',
+      prixBase: parsedPrix,
+      delaiIntervention: json['delai_intervention'] ?? json['delaiIntervention'] ?? json['delai'] ?? '',
       image: json['image'] ?? '',
     );
   }

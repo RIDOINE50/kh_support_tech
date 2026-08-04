@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
@@ -19,40 +20,72 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool isLoading = false;
   final ApiService _apiService = ApiService();
 
-  Future<void> _contacterWhatsApp() async {
-    final String numero = '2290161127145';
-    final String message = 'Bonjour, j\'ai une question concernant ma commande sur KH Support Tech.';
-    final Uri whatsappUrl = Uri.parse('https://wa.me/$numero?text=${Uri.encodeComponent(message)}');
+  // ✅ SÉPARATION DES NUMÉROS POUR ÉVITER TOUTE CONFUSION
+  static const String whatsappNumberLink = '2290161127145'; // <-- C'est ce numéro qui s'ouvrira dans WhatsApp
+  static const String momoNumberDisplay = '01 57 86 59 09'; // <-- C'est ce numéro qui s'affiche pour le dépôt MoMo
+  static const String momoName = 'KH SERVICES';
+  
+  bool _isNumberCopied = false;
 
-    if (await canLaunchUrl(whatsappUrl)) {
-      await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
+  @override
+  void dispose() {
+    _localisationController.dispose();
+    _telephoneController.dispose();
+    super.dispose();
+  }
+
+  void _copierNumero() {
+    Clipboard.setData(const ClipboardData(text: '0157865909'));
+    setState(() => _isNumberCopied = true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Numéro MoMo copié'), duration: Duration(seconds: 1)),
+    );
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) setState(() => _isNumberCopied = false);
+    });
+  }
+
+  // ✅ 1. Fonction pour le bouton WhatsApp PERMANENT (Mène au 01 61 12 71 45)
+  Future<void> _contacterSupportWhatsApp() async {
+    final String message = 'Bonjour KH SERVICES, j\'ai une question concernant ma commande en cours sur l\'application.';
+    final Uri url = Uri.parse('https://wa.me/$whatsappNumberLink?text=${Uri.encodeComponent(message)}');
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossible d\'ouvrir WhatsApp. Veuillez vérifier qu\'il est installé.')),
-      );
+      print("❌ ERREUR TERMINAL : Impossible d'ouvrir WhatsApp (Support).");
+    }
+  }
+
+  // ✅ 2. Fonction pour le bouton WhatsApp APRÈS VALIDATION (Mène au 01 61 12 71 45)
+  Future<void> _envoyerPreuveWhatsApp(double montantTotal) async {
+    final String message = 'Bonjour KH SERVICES. 👋\n\n'
+        'Je viens d\'effectuer le paiement de *${montantTotal.toStringAsFixed(0)} FCFA* \n'
+        'pour ma commande (Mode: ${modeLivraison == 'livraison' ? 'Livraison' : 'Retrait'}).\n\n'
+        'Veuillez trouver ci-joint la capture d\'écran de mon reçu.';
+
+    final Uri url = Uri.parse('https://wa.me/$whatsappNumberLink?text=${Uri.encodeComponent(message)}');
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      print("❌ ERREUR TERMINAL : Impossible d'ouvrir WhatsApp (Preuve).");
     }
   }
 
   Future<void> _validerCommande() async {
     if (CartService().items.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Votre panier est vide.')),
-      );
+      print("❌ ERREUR TERMINAL : Tentative de validation avec un panier vide.");
       return;
     }
 
     if (modeLivraison == 'livraison' && _localisationController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez entrer votre localisation/adresse.')),
-      );
+      print("❌ ERREUR TERMINAL : Le champ localisation est vide.");
       return;
     }
 
     if (_telephoneController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez entrer votre numéro de téléphone.')),
-      );
+      print("❌ ERREUR TERMINAL : Le champ numéro de téléphone est vide.");
       return;
     }
 
@@ -63,10 +96,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       String? token = prefs.getString('token') ?? prefs.getString('access_token');
 
       if (token == null || token.isEmpty) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Session expirée. Veuillez vous reconnecter.')),
-        );
+        print("❌ ERREUR TERMINAL : Token manquant ou session expirée.");
         setState(() => isLoading = false);
         return;
       }
@@ -77,53 +107,147 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         'prix_unitaire': item.price,
       }).toList();
 
+      final double montantTotal = CartService().totalAmount;
+
       Map<String, dynamic> commandeData = {
         'type': 'materiel',
         'description': modeLivraison == 'livraison' 
             ? 'Livraison à domicile. Adresse : ${_localisationController.text} | Tél : ${_telephoneController.text}' 
             : 'Retrait en boutique | Tél : ${_telephoneController.text}',
-        'montant_total': CartService().totalAmount,
+        'montant_total': montantTotal,
         'lignes': lignesCommande,
+        'statut': 'en_attente_paiement',
       };
 
+      print("📤 ENVOI API (Terminal) : Envoi des données à Laravel...");
       final resultat = await _apiService.creerCommande(commandeData, token);
+      print("📥 RÉPONSE API (Terminal) : $resultat");
+
+      if (!mounted) return;
+      setState(() => isLoading = false);
 
       if (resultat['success'] == true) {
+        print("✅ SUCCÈS TERMINAL : Commande créée avec succès.");
         CartService().clear();
-        if (!mounted) return;
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Succès 🎉'),
-            content: const Text('Votre commande a été envoyée avec succès ! L\'administrateur va la traiter. Vous pouvez nous contacter sur WhatsApp pour le suivi.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); 
-                  Navigator.pop(context); 
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
+        _showMoMoInstructionsDialog(montantTotal);
       } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : ${resultat['error']}')),
-        );
+        print("❌ ERREUR BACKEND/LARAVEL (Terminal) : ${resultat['error']}");
       }
     } catch (e) {
-      print('Erreur exception : $e');
+      print("❌ ERREUR EXCEPTION (Terminal) : $e");
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur de connexion : $e')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
+      setState(() => isLoading = false);
     }
+  }
+
+  void _showMoMoInstructionsDialog(double montantTotal) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, 
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.check_circle, color: Colors.green, size: 64),
+              const SizedBox(height: 16),
+              const Text(
+                'Commande enregistrée !',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Veuillez effectuer le dépôt Mobile Money ci-dessous :',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey, fontSize: 14),
+              ),
+              const SizedBox(height: 20),
+              
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(momoName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text(momoNumberDisplay, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary)),
+                          ],
+                        ),
+                        ElevatedButton(
+                          onPressed: _copierNumero,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _isNumberCopied ? Colors.green : AppColors.primary,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          ),
+                          child: Text(
+                            _isNumberCopied ? 'Copié !' : 'Copier',
+                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        )
+                      ],
+                    ),
+                    const Divider(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Montant à payer :', style: TextStyle(fontSize: 14)),
+                        Text(
+                          '${montantTotal.toStringAsFixed(0)} FCFA',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _envoyerPreuveWhatsApp(montantTotal); // Ouvre WhatsApp vers le 01 61 12 71 45
+                  },
+                  icon: const Icon(Icons.wechat, color: Colors.white, size: 24),
+                  label: const Text(
+                    'J\'ai payé, envoyer la preuve',
+                    style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF25D366),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: const Text('Annuler', style: TextStyle(color: Colors.grey)),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -135,6 +259,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final textSecondary = Theme.of(context).textTheme.bodyMedium?.color ?? (isDark ? Colors.grey[400]! : Colors.black54);
     final dividerColor = Theme.of(context).dividerColor ?? (isDark ? Colors.grey[800]! : Colors.grey[300]!);
     final chipUnselectedBg = isDark ? Colors.grey[800] : Colors.grey[200];
+
+    final totalAmount = CartService().totalAmount;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -236,7 +362,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Total :', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
-                Text('${CartService().totalAmount.toStringAsFixed(0)} FCFA', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                Text('${totalAmount.toStringAsFixed(0)} FCFA', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
               ],
             ),
             
@@ -255,28 +381,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 onPressed: isLoading ? null : _validerCommande,
                 child: isLoading 
                     ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) 
-                    : const Text('Payer / Valider la commande', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    : const Text('Valider la commande', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
             
-            const SizedBox(height: 15),
+            const SizedBox(height: 16),
 
-            // ✅ NOUVEAU BOUTON WHATSAPP (CORRIGÉ ET PROPRE)
+            // ✅ NOUVEAU : BOUTON WHATSAPP PERMANENT (Mène au 01 61 12 71 45)
             SizedBox(
               width: double.infinity,
               height: 50,
               child: OutlinedButton.icon(
-                onPressed: _contacterWhatsApp,
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: const Color(0xFF25D366), 
-                  foregroundColor: Colors.white, 
-                  side: const BorderSide(color: Color(0xFF25D366), width: 2),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                icon: const Icon(Icons.wechat, size: 26), 
+                onPressed: _contacterSupportWhatsApp,
+                icon: const Icon(Icons.wechat, color: Color(0xFF25D366), size: 24),
                 label: const Text(
-                  'Nous contacter sur WhatsApp',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  'Une question ? Contacter le support',
+                  style: TextStyle(color: Color(0xFF25D366), fontSize: 15, fontWeight: FontWeight.w600),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFF25D366), width: 1.5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  backgroundColor: const Color(0xFF25D366).withOpacity(0.05),
                 ),
               ),
             ),

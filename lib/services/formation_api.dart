@@ -4,7 +4,7 @@ import 'storage_service.dart';
 
 class FormationApi {
   // ✅ Ton adresse IP est correcte
- static const String baseUrl = 'https://kh-support-backend-production.up.railway.app/api';
+  static const String baseUrl = 'https://kh-support-backend-production.up.railway.app/api';
 
   // ==========================================
   // 1. RÉCUPÉRER LA LISTE DES FORMATIONS
@@ -22,7 +22,7 @@ class FormationApi {
           'ngrok-skip-browser-warning': 'true',
           if (token != null) 'Authorization': 'Bearer $token',
         },
-      );
+      ).timeout(const Duration(seconds: 30)); // ⬅️ TIMEOUT AJOUTÉ ICI
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -52,7 +52,7 @@ class FormationApi {
           'ngrok-skip-browser-warning': 'true',
           if (token != null) 'Authorization': 'Bearer $token',
         },
-      );
+      ).timeout(const Duration(seconds: 30)); // ⬅️ TIMEOUT AJOUTÉ ICI
 
       final data = jsonDecode(response.body);
 

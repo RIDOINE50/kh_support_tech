@@ -88,12 +88,11 @@ class CustomDrawer extends StatelessWidget {
           // ✅ On garde un petit espace entre le header bleu et le premier élément du menu
           const SizedBox(height: 12),
 
-          // 2. LISTE DES ITEMS DU MENU
+          // 2. LISTE DES ITEMS DU MENU (Sans l'onglet Programmes)
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               children: [
-                _DrawerMenuItem(icon: Icons.event_available_outlined, title: 'Programmes', defaultTextColor: textColor, defaultIconColor: defaultIconColor, onTap: () => onMenuItemTap('programmes')),
                 _DrawerMenuItem(icon: Icons.shopping_bag_outlined, title: 'Marché et Achats', defaultTextColor: textColor, defaultIconColor: defaultIconColor, onTap: () => onMenuItemTap('marche_achat')),
                 _DrawerMenuItem(icon: Icons.storefront_outlined, title: 'Boutique', defaultTextColor: textColor, defaultIconColor: defaultIconColor, onTap: () => onMenuItemTap('boutique')),
                 _DrawerMenuItem(icon: Icons.headset_mic_outlined, title: 'Assistance', defaultTextColor: textColor, defaultIconColor: defaultIconColor, onTap: () => onMenuItemTap('assistance')),
