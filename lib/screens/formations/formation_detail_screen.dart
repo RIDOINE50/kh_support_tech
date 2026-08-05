@@ -294,7 +294,7 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Abidjan, Cocody Riviera 2',
+                              '',
                               style: TextStyle(color: textSecondary, fontSize: 12), // ✅ Texte adaptatif
                             ),
                           ],
