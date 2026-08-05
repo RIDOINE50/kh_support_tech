@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // ✅ AJOUTÉ : Pour sauvegarder les données
 import '../../core/constants/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../main/main_screen.dart';
@@ -177,6 +178,21 @@ class _RegisterStep6ScreenState extends State<RegisterStep6Screen> {
                                 setState(() => _isLoading = false);
 
                                 if (result['success'] == true) {
+                                  // ✅ SAUVEGARDE DES DONNÉES DANS LE TÉLÉPHONE
+                                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                                  
+                                  // 1. Sauvegarder le token (pour rester connecté)
+                                  if (result['token'] != null) {
+                                    await prefs.setString('token', result['token']);
+                                  } else if (result['access_token'] != null) {
+                                    await prefs.setString('token', result['access_token']);
+                                  }
+
+                                  // 2. Sauvegarder le nom complet et l'email (pour le profil)
+                                  final fullName = '$nom $prenom'.trim();
+                                  await prefs.setString('name', fullName.isNotEmpty ? fullName : 'Utilisateur');
+                                  await prefs.setString('email', email.isNotEmpty ? email : 'email@exemple.com');
+
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('✅ ${result['message']}'),

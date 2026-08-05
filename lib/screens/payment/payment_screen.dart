@@ -20,11 +20,11 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  // Numéro MoMo de l'entreprise (Format international pour le lien, format local pour l'affichage)
-  static const String momoNumberDisplay = '01 57 86 59 09';
-  static const String momoNumberLink = '2290157865909';
+  // ✅ SÉPARATION DES NUMÉROS POUR PLUS DE CLARTÉ
+  static const String momoNumberDisplay = '01 57 86 59 09'; // Pour l'affichage
+  static const String whatsappNumberLink = '2290161127145'; // Pour le lien WhatsApp
+  
   static const String momoName = 'KH SERVICES';
-
   bool _isNumberCopied = false;
 
   @override
@@ -48,7 +48,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
   }
 
-  // ✅ 2. Fonction pour ouvrir WhatsApp avec le message pré-rempli (Corrigée)
+  // ✅ 2. Fonction pour ouvrir WhatsApp (MÊME MÉTHODE ÉPROUVÉE QUE FORMATIONS)
   Future<void> _envoyerPreuveWhatsApp() async {
     final String message = 'Bonjour KH SERVICES. 👋\n\n'
         'Je viens d\'effectuer le paiement de *${widget.montant.toStringAsFixed(0)} FCFA* \n'
@@ -56,11 +56,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
         'Veuillez trouver ci-joint la capture d\'écran de mon reçu de transaction.\n'
         'Merci de bien vouloir valider mon inscription.';
 
-    final Uri url = Uri.parse('https://wa.me/$momoNumberLink?text=${Uri.encodeComponent(message)}');
+    // ✅ Utilisation du bon numéro WhatsApp et de Uri.encodeComponent
+    final Uri url = Uri.parse('https://wa.me/$whatsappNumberLink?text=${Uri.encodeComponent(message)}');
 
-    // Utilisation de platformDefault (ou suppression du mode) pour assurer une ouverture fluide
+    // ✅ Utilisation de LaunchMode.externalApplication pour forcer l'ouverture de l'app
     if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.platformDefault);
+      await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -218,13 +219,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
             height: 54,
             child: ElevatedButton.icon(
               onPressed: _envoyerPreuveWhatsApp,
-              icon: const Icon(Icons.chat_bubble_rounded, color: Colors.white, size: 24),
+              // ✅ Icône standard Flutter pour éviter toute erreur rouge
+              icon: const Icon(Icons.wechat, color: Colors.white, size: 24), 
               label: const Text(
                 'J\'ai payé, envoyer la preuve',
                 style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF25D366),
+                backgroundColor: const Color(0xFF25D366), // Vert WhatsApp
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),

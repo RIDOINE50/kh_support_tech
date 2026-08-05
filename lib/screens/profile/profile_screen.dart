@@ -1,9 +1,7 @@
-// Fichier : lib/screen/profile_screen.dart (ou équivalent)
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
 import 'user_commandes_screen.dart';
-// ❌ Supprimé : import 'user_factures_screen.dart';
 import 'user_interventions_screen.dart';
 import 'user_formations_screen.dart';
 import 'user_devis_screen.dart';
@@ -18,31 +16,18 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserver {
+class _ProfileScreenState extends State<ProfileScreen> {
   String userName = 'Chargement...';
-  String userEmail = '';
+  String userEmail = '...';
+  bool _isDataLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _loadUserHeaderInfo();
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  // Recharge les informations à chaque fois que l'écran redevient visible
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _loadUserHeaderInfo();
-    }
-  }
-
+  // ✅ LA SOLUTION MAGIQUE : Se déclenche à CHAQUE fois que l'écran devient visible
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -52,7 +37,10 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
   Future<void> _loadUserHeaderInfo() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     
-    // Récupération sécurisée avec plusieurs clés potentielles pour éviter les valeurs vides
+    // Force la relecture des données sur le disque
+    await prefs.reload(); 
+    
+    // On cherche le nom avec plusieurs clés possibles pour être sûr de le trouver
     String name = prefs.getString('name') ?? 
                   prefs.getString('user_name') ?? 
                   prefs.getString('full_name') ?? 
@@ -62,18 +50,21 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
                    prefs.getString('user_email') ?? 
                    'utilisateur@email.com';
 
-    setState(() {
-      userName = name;
-      userEmail = email;
-    });
+    // Mise à jour de l'état uniquement si le widget est toujours monté
+    if (mounted) {
+      setState(() {
+        userName = name;
+        userEmail = email;
+        _isDataLoaded = true;
+      });
+    }
   }
 
-  // ✅ SOLUTION INFAILLIBLE POUR RETOURNER À L'ACCUEIL
   void _goToHome() {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const MainScreen()),
-      (route) => false, // Supprime TOUT l'historique
+      (route) => false,
     );
   }
 
@@ -104,7 +95,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // CARTE PROFIL DYNAMIQUE
+          // ✅ CARTE PROFIL DYNAMIQUE
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -124,14 +115,21 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        userName,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ),
+                      // Affiche un petit indicateur de chargement si les données ne sont pas encore là
+                      _isDataLoaded 
+                        ? Text(
+                            userName,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          )
+                        : const SizedBox(
+                            height: 20,
+                            width: 100,
+                            child: LinearProgressIndicator(backgroundColor: Colors.grey, valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)),
+                          ),
                       const SizedBox(height: 4),
                       Text(
                         userEmail,
@@ -158,7 +156,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
           ),
           const SizedBox(height: 12),
 
-          // LISTE DES COMMANDES, INTERVENTIONS, ETC. (Factures retirées)
+          // LISTE DES ACTIVITÉS
           Container(
             decoration: BoxDecoration(
               color: cardColor,
@@ -175,7 +173,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
                   borderColor: borderColor,
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const UserCommandesScreen())),
                 ),
-                // ❌ Ligne "Mes factures" supprimée ici
                 Divider(height: 1, indent: 56, color: borderColor),
                 _AccountMenuItem(
                   icon: Icons.handyman_outlined,
@@ -224,11 +221,13 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
               SharedPreferences prefs = await SharedPreferences.getInstance();
               await prefs.clear();
               
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-                (route) => false,
-              );
+              if (context.mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  (route) => false,
+                );
+              }
             },
             icon: const Icon(Icons.logout, color: Colors.red),
             label: const Text('Se déconnecter', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
@@ -241,7 +240,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
         ],
       ),
     );
-  }
+        }
 }
 
 class _AccountMenuItem extends StatelessWidget {
