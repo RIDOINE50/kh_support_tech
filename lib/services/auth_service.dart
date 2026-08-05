@@ -24,7 +24,6 @@ class AuthService {
     if (isConnected) {
       print("🌐 Connexion internet détectée. Appel à l'API...");
 
-      // 🔄 TECHNIQUE DE DOUBLE TENTATIVE POUR LES HOQUETS WI-FI
       for (int attempt = 1; attempt <= 2; attempt++) {
         try {
           print("📤 Tentative de connexion n°$attempt...");
@@ -46,25 +45,21 @@ class AuthService {
               'user': response['user'],
             };
           }
-          return response; // Si l'API répond (même avec une erreur de mot de passe), on retourne la réponse.
+          return response;
 
         } catch (e) {
           String errorStr = e.toString();
           print("⚠️ Erreur tentative $attempt : $errorStr");
 
-          // Si c'est l'erreur de DNS (Failed host lookup) et que c'est la 1ère tentative
           if ((errorStr.contains('Failed host lookup') || errorStr.contains('SocketException')) && attempt == 1) {
             print("🔄 Le Wi-Fi a du mal à résoudre l'adresse. Nouvelle tentative dans 0.5 seconde...");
             await Future.delayed(const Duration(milliseconds: 500));
-            continue; // On relance la boucle pour la 2ème tentative
+            continue;
           }
-          
-          // Si c'est la 2ème tentative ou une autre erreur, on sort de la boucle et on gère l'erreur
           break;
         }
       }
 
-      // Si on arrive ici, les 2 tentatives ont échoué
       return {
         'success': false,
         'error': 'Délai dépassé ou problème de connexion. Essayez en 4G ou vérifiez votre Wi-Fi.'
@@ -98,7 +93,7 @@ class AuthService {
     }
   }
 
-  // ✅ 2. ENREGISTREMENT UTILISATEUR (REGISTER) AVEC DOUBLE TENTATIVE
+  // ✅ 2. ENREGISTREMENT UTILISATEUR (REGISTER) AVEC DOUBLE TENTATIVE ET TIMEOUT SÉCURISÉ
   Future<Map<String, dynamic>> registerComplete(Map<String, dynamic> formData) async {
     final dataToSend = {
       'name': '${formData['prenom'] ?? ''} ${formData['nom'] ?? ''}'.trim(),
@@ -108,10 +103,15 @@ class AuthService {
 
     print("📤 Envoi de la création de compte utilisateur à Laravel (/register)...");
 
-    // 🔄 Même technique de double tentative pour l'inscription
     for (int attempt = 1; attempt <= 2; attempt++) {
       try {
-        final result = await _api.registerUser(dataToSend);
+        // ⏱️ On force un timeout de 15 secondes pour éviter le blocage infini dans le vide
+        final result = await _api.registerUser(dataToSend).timeout(
+          const Duration(seconds: 15),
+          onTimeout: () {
+            throw Exception('Timeout : Le serveur Laravel met trop de temps à répondre.');
+          },
+        );
 
         if (result['success'] == true && result['token'] != null) {
           await _storage.saveToken(result['token']);
@@ -125,6 +125,8 @@ class AuthService {
 
       } catch (e) {
         String errorStr = e.toString();
+        print("⚠️ Erreur inscription tentative $attempt : $errorStr");
+
         if ((errorStr.contains('Failed host lookup') || errorStr.contains('SocketException')) && attempt == 1) {
           print("🔄 Tentative d'inscription n°2 suite à un hoquet réseau...");
           await Future.delayed(const Duration(milliseconds: 500));

@@ -50,10 +50,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final String message = 'Bonjour KH SERVICES, j\'ai une question concernant ma commande en cours sur l\'application.';
     final Uri url = Uri.parse('https://wa.me/$whatsappNumberLink?text=${Uri.encodeComponent(message)}');
 
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      print("❌ ERREUR TERMINAL : Impossible d'ouvrir WhatsApp (Support).");
+    try {
+      bool launched = await launchUrl(url, mode: LaunchMode.externalApplication);
+      if (!launched) {
+        print("❌ ERREUR TERMINAL : Impossible d'ouvrir WhatsApp (Support).");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Impossible d\'ouvrir WhatsApp. Vérifiez qu\'il est bien installé.')),
+          );
+        }
+      }
+    } catch (e) {
+      print("❌ ERREUR EXCEPTION (Support WhatsApp) : $e");
     }
   }
 
@@ -66,10 +74,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     final Uri url = Uri.parse('https://wa.me/$whatsappNumberLink?text=${Uri.encodeComponent(message)}');
 
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      print("❌ ERREUR TERMINAL : Impossible d'ouvrir WhatsApp (Preuve).");
+    try {
+      bool launched = await launchUrl(url, mode: LaunchMode.externalApplication);
+      if (!launched) {
+        print("❌ ERREUR TERMINAL : Impossible d'ouvrir WhatsApp (Preuve).");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Impossible d\'ouvrir WhatsApp. Vérifiez qu\'il est bien installé.')),
+          );
+        }
+      }
+    } catch (e) {
+      print("❌ ERREUR EXCEPTION (Preuve WhatsApp) : $e");
     }
   }
 
@@ -387,7 +403,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             
             const SizedBox(height: 16),
 
-            // ✅ NOUVEAU : BOUTON WHATSAPP PERMANENT (Mène au 01 61 12 71 45)
+            // ✅ BOUTON WHATSAPP PERMANENT (Mène au 01 61 12 71 45)
             SizedBox(
               width: double.infinity,
               height: 50,

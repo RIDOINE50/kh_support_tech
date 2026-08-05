@@ -1,8 +1,9 @@
+// Fichier : lib/screen/profile_screen.dart (ou équivalent)
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
 import 'user_commandes_screen.dart';
-import 'user_factures_screen.dart';
+// ❌ Supprimé : import 'user_factures_screen.dart';
 import 'user_interventions_screen.dart';
 import 'user_formations_screen.dart';
 import 'user_devis_screen.dart';
@@ -17,22 +18,53 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserver {
   String userName = 'Chargement...';
   String userEmail = '';
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _loadUserHeaderInfo();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // Recharge les informations à chaque fois que l'écran redevient visible
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadUserHeaderInfo();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _loadUserHeaderInfo();
   }
 
   Future<void> _loadUserHeaderInfo() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     
+    // Récupération sécurisée avec plusieurs clés potentielles pour éviter les valeurs vides
+    String name = prefs.getString('name') ?? 
+                  prefs.getString('user_name') ?? 
+                  prefs.getString('full_name') ?? 
+                  'Mon Profil';
+                  
+    String email = prefs.getString('email') ?? 
+                   prefs.getString('user_email') ?? 
+                   'utilisateur@email.com';
+
     setState(() {
-      userName = prefs.getString('name') ?? prefs.getString('user_name') ?? 'Mon Profil';
-      userEmail = prefs.getString('email') ?? prefs.getString('user_email') ?? 'utilisateur@email.com';
+      userName = name;
+      userEmail = email;
     });
   }
 
@@ -72,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // CARTE PROFIL (SANS le bouton modifier)
+          // CARTE PROFIL DYNAMIQUE
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -111,7 +143,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ),
-                // ✅ LE BOUTON CRAYON A ÉTÉ SUPPRIMÉ ICI
               ],
             ),
           ),
@@ -127,7 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 12),
 
-          // LISTE DES COMMANDES, FACTURES, ETC.
+          // LISTE DES COMMANDES, INTERVENTIONS, ETC. (Factures retirées)
           Container(
             decoration: BoxDecoration(
               color: cardColor,
@@ -144,15 +175,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderColor: borderColor,
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const UserCommandesScreen())),
                 ),
-                Divider(height: 1, indent: 56, color: borderColor),
-                _AccountMenuItem(
-                  icon: Icons.receipt_outlined,
-                  title: 'Mes factures',
-                  textColor: textColor,
-                  textSecondary: textSecondary,
-                  borderColor: borderColor,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const UserFacturesScreen())),
-                ),
+                // ❌ Ligne "Mes factures" supprimée ici
                 Divider(height: 1, indent: 56, color: borderColor),
                 _AccountMenuItem(
                   icon: Icons.handyman_outlined,

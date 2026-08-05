@@ -3,7 +3,7 @@ import '../home/home_screen.dart';
 import '../services/services_screen.dart';
 import '../formations/formations_screen.dart';
 import '../profile/profile_screen.dart';
-import '../devis/marche_achat_screen.dart'; 
+import '../boutique/boutique_screen.dart'; // 👈 Remplacé par la boutique
 import '../../core/widgets/custom_bottom_nav_bar.dart';
 
 class MainScreen extends StatefulWidget {
@@ -18,11 +18,11 @@ class _MainScreenState extends State<MainScreen> {
 
   // ✅ Les 5 écrans correspondent exactement aux 5 onglets de la barre du bas
   final List<Widget> _screens = [
-    const HomeScreen(),            // Index 0 : Accueil
-    const ServicesScreen(),        // Index 1 : Services
-    const FormationsScreen(),      // Index 2 : Formations
-    const MarcheAchatScreen(),    // Index 3 : Devis (Remplace Réservations)
-    const ProfileScreen(),         // Index 4 : Compte
+    const HomeScreen(),          // Index 0 : Accueil
+    const ServicesScreen(),      // Index 1 : Services
+    const FormationsScreen(),    // Index 2 : Formations
+    const BoutiqueScreen(),      // Index 3 : Boutique (Remplace Marché et achats)
+    const ProfileScreen(),       // Index 4 : Compte
   ];
 
   @override

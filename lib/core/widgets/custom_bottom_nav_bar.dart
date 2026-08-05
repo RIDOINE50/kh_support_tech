@@ -32,9 +32,9 @@ class CustomBottomNavBar extends StatelessWidget {
       color: Color(0xFF8B5CF6), // Violet
     ),
     _NavItemData(
-      icon: Icons.shopping_bag_rounded,
-      inactiveIcon: Icons.shopping_bag_outlined,
-      label: 'Marché et achats',
+      icon: Icons.store_rounded,
+      inactiveIcon: Icons.store_outlined,
+      label: 'Boutique',
       color: Color(0xFF10B981), // Vert
     ),
     _NavItemData(

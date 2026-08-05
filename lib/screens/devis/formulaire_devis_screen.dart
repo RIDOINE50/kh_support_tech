@@ -17,20 +17,18 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
   int _currentStep = 0; // 0: Informations, 1: Détails, 2: Récapitulatif
   bool _isLoading = false;
 
-  // Contrôleurs pour les champs de saisie
-  final _entrepriseController = TextEditingController(text: 'ETS Global Services');
-  final _contactController = TextEditingController(text: 'Marc Houndé');
-  final _telephoneController = TextEditingController(text: '+229 97 34 56 78');
-  final _emailController = TextEditingController(text: 'contact@ets-global.com');
+  // ✅ Contrôleurs vidés et prêts pour la saisie utilisateur
+  final _entrepriseController = TextEditingController();
+  final _contactController = TextEditingController();
+  final _telephoneController = TextEditingController();
+  final _emailController = TextEditingController();
 
   String _categorieSelected = 'Matériel informatique';
-  final _objetController = TextEditingController(text: 'Fourniture de 20 ordinateurs portables');
-  final _descriptionController = TextEditingController(
-    text: 'Nous souhaitons acquérir 20 ordinateurs portables avec les caractéristiques suivantes :\n- Processeur i5 ou équivalent\n- RAM 8 Go minimum\n- Disque dur SSD 512 Go\n- Windows 11\nMerci de nous faire votre meilleure proposition.',
-  );
-  final _quantiteController = TextEditingController(text: '20');
-  final _dateSouhaiteeController = TextEditingController(text: '15/08/2026');
-  final _adresseController = TextEditingController(text: 'Parakou, Quartier Bannikanni, Bénin');
+  final _objetController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _quantiteController = TextEditingController();
+  final _dateSouhaiteeController = TextEditingController();
+  final _adresseController = TextEditingController();
 
   @override
   void dispose() {
@@ -99,7 +97,7 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
 
       print("📦 Données prêtes à être envoyées au serveur :");
       donneesDemande.forEach((cle, valeur) {
-        print("   - $cle : $valeur (${valeur.runtimeType})");
+        print("  - $cle : $valeur (${valeur.runtimeType})");
       });
 
       print("📤 Appel de l'ApiService...");
@@ -138,7 +136,6 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
   }
 
   void _showSuccessDialog() {
-    // Détection du thème pour la dialog
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black87;
     final textSecondary = isDark ? Colors.grey[400]! : Colors.black54;
@@ -147,7 +144,7 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).cardColor, // ✅ Fond de dialog adaptatif
+        backgroundColor: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -222,7 +219,6 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ 1. DÉTECTION DU MODE SOMBRE ET COULEURS DYNAMIQUES
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = Theme.of(context).scaffoldBackgroundColor;
     final cardColor = Theme.of(context).cardColor;
@@ -234,16 +230,16 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
     final overlayColor = Colors.black.withOpacity(isDark ? 0.6 : 0.3);
 
     return Scaffold(
-      backgroundColor: bgColor, // ✅ Fond adaptatif
+      backgroundColor: bgColor,
       appBar: AppBar(
         title: Text(
           _currentStep == 2 ? 'Récapitulatif' : 'Remplir le formulaire',
-          style: TextStyle(color: textColor, fontWeight: FontWeight.bold), // ✅ Texte adaptatif
+          style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: bgColor, // ✅ AppBar adaptative
+        backgroundColor: bgColor,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textColor), // ✅ Icône adaptative
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: _prevStep,
         ),
       ),
@@ -251,9 +247,8 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
         children: [
           Column(
             children: [
-              // Indicateur d'étape
               Container(
-                color: cardColor, // ✅ Fond de la barre d'étape adaptatif
+                color: cardColor,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -266,17 +261,16 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
                   ],
                 ),
               ),
-              Divider(height: 1, color: borderColor), // ✅ Séparateur adaptatif
+              Divider(height: 1, color: borderColor),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: _buildCurrentStepContent(cardColor, textColor, textSecondary, borderColor),
                 ),
               ),
-              // Barre d'action en bas
               Container(
                 padding: const EdgeInsets.all(16),
-                color: cardColor, // ✅ Fond de la barre d'action adaptatif
+                color: cardColor,
                 child: Row(
                   children: [
                     if (_currentStep > 0)
@@ -316,7 +310,7 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
           ),
           if (_isLoading)
             Container(
-              color: overlayColor, // ✅ Overlay adaptatif (plus sombre en mode nuit)
+              color: overlayColor,
               child: const Center(
                 child: CircularProgressIndicator(color: AppColors.primary),
               ),
@@ -336,7 +330,7 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: isActive ? AppColors.primary : inactiveBg, // ✅ Fond adaptatif
+            color: isActive ? AppColors.primary : inactiveBg,
             shape: BoxShape.circle,
             border: isCurrent ? Border.all(color: AppColors.secondary, width: 2) : null,
           ),
@@ -344,7 +338,7 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
             child: Text(
               '${stepIndex + 1}',
               style: TextStyle(
-                color: isActive ? Colors.white : inactiveText, // ✅ Texte adaptatif
+                color: isActive ? Colors.white : inactiveText,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -355,7 +349,7 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
           title,
           style: TextStyle(
             fontSize: 11,
-            color: isCurrent ? AppColors.primary : textColor, // ✅ Texte adaptatif
+            color: isCurrent ? AppColors.primary : textColor,
             fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -367,7 +361,7 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
     return Container(
       width: 40,
       height: 2,
-      color: borderColor, // ✅ Couleur adaptative
+      color: borderColor,
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
     );
   }
@@ -391,13 +385,13 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
       children: [
         Text('Informations générales', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
         const SizedBox(height: 16),
-        _buildTextField('Nom de l\'entreprise *', _entrepriseController, cardColor, textColor, textSecondary, borderColor),
+        _buildTextField('Nom de l\'entreprise *', _entrepriseController, cardColor, textColor, textSecondary, borderColor, hintText: 'Ex: Ma Société Sarl'),
         const SizedBox(height: 12),
-        _buildTextField('Personne de contact *', _contactController, cardColor, textColor, textSecondary, borderColor),
+        _buildTextField('Personne de contact *', _contactController, cardColor, textColor, textSecondary, borderColor, hintText: 'Ex: Jean Dupont'),
         const SizedBox(height: 12),
-        _buildTextField('Téléphone *', _telephoneController, cardColor, textColor, textSecondary, borderColor, keyboardType: TextInputType.phone),
+        _buildTextField('Téléphone *', _telephoneController, cardColor, textColor, textSecondary, borderColor, keyboardType: TextInputType.phone, hintText: 'Ex: +229 97 00 00 00'),
         const SizedBox(height: 12),
-        _buildTextField('Email *', _emailController, cardColor, textColor, textSecondary, borderColor, keyboardType: TextInputType.emailAddress),
+        _buildTextField('Email *', _emailController, cardColor, textColor, textSecondary, borderColor, keyboardType: TextInputType.emailAddress, hintText: 'Ex: contact@masociete.com'),
       ],
     );
   }
@@ -413,37 +407,37 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: cardColor, // ✅ Fond adaptatif
+            color: cardColor,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: borderColor), // ✅ Bordure adaptative
+            border: Border.all(color: borderColor),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: _categorieSelected,
               isExpanded: true,
-              style: TextStyle(color: textColor), // ✅ Texte du dropdown adaptatif
+              style: TextStyle(color: textColor),
               items: ['Matériel informatique', 'Réseaux & Télécoms', 'Développement Logiciel', 'Formations']
                   .map((cat) => DropdownMenuItem(value: cat, child: Text(cat, style: TextStyle(fontSize: 14, color: textColor))))
                   .toList(),
               onChanged: (val) => setState(() => _categorieSelected = val!),
-              icon: Icon(Icons.arrow_drop_down, color: textColor), // ✅ Icône adaptative
+              icon: Icon(Icons.arrow_drop_down, color: textColor),
             ),
           ),
         ),
         const SizedBox(height: 12),
-        _buildTextField('Objet de la demande *', _objetController, cardColor, textColor, textSecondary, borderColor),
+        _buildTextField('Objet de la demande *', _objetController, cardColor, textColor, textSecondary, borderColor, hintText: 'Ex: Achat d\'équipements réseau'),
         const SizedBox(height: 12),
-        _buildTextField('Description détaillée *', _descriptionController, cardColor, textColor, textSecondary, borderColor, maxLines: 5),
+        _buildTextField('Description détaillée *', _descriptionController, cardColor, textColor, textSecondary, borderColor, maxLines: 5, hintText: 'Décrivez précisément vos besoins...'),
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _buildTextField('Quantité *', _quantiteController, cardColor, textColor, textSecondary, borderColor, keyboardType: TextInputType.number)),
+            Expanded(child: _buildTextField('Quantité *', _quantiteController, cardColor, textColor, textSecondary, borderColor, keyboardType: TextInputType.number, hintText: 'Ex: 5')),
             const SizedBox(width: 12),
-            Expanded(child: _buildTextField('Date souhaitée *', _dateSouhaiteeController, cardColor, textColor, textSecondary, borderColor, suffixIcon: Icons.calendar_today)),
+            Expanded(child: _buildTextField('Date souhaitée *', _dateSouhaiteeController, cardColor, textColor, textSecondary, borderColor, suffixIcon: Icons.calendar_today, hintText: 'JJ/MM/AAAA')),
           ],
         ),
         const SizedBox(height: 12),
-        _buildTextField('Adresse de livraison *', _adresseController, cardColor, textColor, textSecondary, borderColor),
+        _buildTextField('Adresse de livraison *', _adresseController, cardColor, textColor, textSecondary, borderColor, hintText: 'Ex: Cotonou, Quartier...'),
       ],
     );
   }
@@ -473,7 +467,7 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, Color cardColor, Color textColor, Color textSecondary, Color borderColor, {int maxLines = 1, TextInputType? keyboardType, IconData? suffixIcon}) {
+  Widget _buildTextField(String label, TextEditingController controller, Color cardColor, Color textColor, Color textSecondary, Color borderColor, {int maxLines = 1, TextInputType? keyboardType, IconData? suffixIcon, String? hintText}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -483,11 +477,12 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
           controller: controller,
           maxLines: maxLines,
           keyboardType: keyboardType,
-          style: TextStyle(color: textColor), // ✅ Texte saisi adaptatif
+          style: TextStyle(color: textColor),
           decoration: InputDecoration(
             filled: true,
-            fillColor: cardColor, // ✅ Fond du champ adaptatif
-            hintStyle: TextStyle(color: textSecondary.withOpacity(0.7)), // ✅ Hint adaptatif
+            fillColor: cardColor,
+            hintText: hintText, // ✅ Indice dynamique ajouté
+            hintStyle: TextStyle(color: textSecondary.withOpacity(0.7)),
             suffixIcon: suffixIcon != null ? Icon(suffixIcon, size: 18, color: AppColors.primary) : null,
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: borderColor)),
@@ -504,18 +499,18 @@ class _FormulaireDevisScreenState extends State<FormulaireDevisScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cardColor, // ✅ Fond adaptatif
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor), // ✅ Bordure adaptative
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primary)),
-          Divider(height: 16, color: borderColor), // ✅ Séparateur adaptatif
+          Divider(height: 16, color: borderColor),
           ...details.map((detail) => Padding(
                 padding: const EdgeInsets.only(bottom: 6),
-                child: Text(detail, style: TextStyle(fontSize: 12, color: textColor, height: 1.3)), // ✅ Texte adaptatif
+                child: Text(detail, style: TextStyle(fontSize: 12, color: textColor, height: 1.3)),
               )),
         ],
       ),

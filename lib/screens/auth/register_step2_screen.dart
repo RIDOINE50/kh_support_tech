@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // ✅ Import nécessaire pour le formateur de texte (date)
 import '../../core/constants/app_colors.dart';
-import 'register_step3_screen.dart'; // ✅ Import de l'étape suivante
+import 'register_step3_screen.dart'; // Import de l'étape suivante
 
 class RegisterStep2Screen extends StatefulWidget {
-  // ✅ 1. ON REÇOIT LE "SAC À DOS" (Map) DEPUIS L'ÉTAPE 1
+  // 1. ON REÇOIT LE "SAC À DOS" (Map) DEPUIS L'ÉTAPE 1
   final Map<String, dynamic> formData;
 
   const RegisterStep2Screen({
@@ -16,12 +17,12 @@ class RegisterStep2Screen extends StatefulWidget {
 }
 
 class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
-  // Contrôleurs pour les champs
-  final _nomController = TextEditingController(text: 'KPATCHA');
-  final _prenomController = TextEditingController(text: 'Hounnonnon');
-  final _dateController = TextEditingController(text: '15 / 06 / 1995');
-  final _telController = TextEditingController(text: '+229 97 12 34 56');
-  final _emailController = TextEditingController(text: 'kpatcha@gmail.com');
+  // ✅ Contrôleurs vidés pour ne pas obliger l'utilisateur à effacer
+  final _nomController = TextEditingController();
+  final _prenomController = TextEditingController();
+  final _dateController = TextEditingController();
+  final _telController = TextEditingController();
+  final _emailController = TextEditingController();
 
   String _sexe = 'homme'; // Valeur par défaut
 
@@ -93,7 +94,7 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
               ),
               const SizedBox(height: 8),
               
-              // ✅ ON AFFICHE LE PROFIL STOCKÉ DANS LE SAC À DOS
+              // ON AFFICHE LE PROFIL STOCKÉ DANS LE SAC À DOS
               Text(
                 'Profil : ${widget.formData['profile'].toString().toUpperCase()}',
                 style: const TextStyle(
@@ -110,9 +111,10 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTextField('Nom', controller: _nomController),
+                      _buildTextField('Nom', controller: _nomController, hintText: 'Entrez votre nom'),
                       const SizedBox(height: 16),
-                      _buildTextField('Prénom', controller: _prenomController),
+                      
+                      _buildTextField('Prénom', controller: _prenomController, hintText: 'Entrez votre prénom'),
                       const SizedBox(height: 16),
 
                       // SÉLECTION DU SEXE
@@ -153,17 +155,31 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
                       ),
                       const SizedBox(height: 16),
 
+                      // ✅ CHAMP DATE DE NAISSANCE (AVEC BARRES AUTOMATIQUES)
                       _buildTextField(
                         'Date de naissance',
                         controller: _dateController,
+                        hintText: 'JJ/MM/AAAA', // Indice pour l'utilisateur
+                        keyboardType: TextInputType.number, // Ouvre le clavier numérique
+                        inputFormatters: [DateInputFormatter()], // Applique les barres automatiquement
                         suffixIcon: const Icon(Icons.calendar_today_outlined, color: Color(0xFF6B7280)),
                       ),
                       const SizedBox(height: 16),
 
-                      _buildTextField('Téléphone', controller: _telController, keyboardType: TextInputType.phone),
+                      _buildTextField(
+                        'Téléphone', 
+                        controller: _telController, 
+                        keyboardType: TextInputType.phone,
+                        hintText: 'Ex: +229 97 00 00 00',
+                      ),
                       const SizedBox(height: 16),
 
-                      _buildTextField('Adresse e-mail', controller: _emailController, keyboardType: TextInputType.emailAddress),
+                      _buildTextField(
+                        'Adresse e-mail', 
+                        controller: _emailController, 
+                        keyboardType: TextInputType.emailAddress,
+                        hintText: 'Ex: monadresse@email.com',
+                      ),
                       const SizedBox(height: 32),
 
                       // BOUTONS PRÉCÉDENT ET SUIVANT
@@ -188,10 +204,10 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
                             flex: 2,
                             child: ElevatedButton(
                               onPressed: () {
-                                // ✅ 1. ON CRÉE UNE COPIE DU SAC À DOS ACTUEL
+                                // 1. ON CRÉE UNE COPIE DU SAC À DOS ACTUEL
                                 Map<String, dynamic> updatedData = Map.from(widget.formData);
                                 
-                                // ✅ 2. ON AJOUTE LES DONNÉES DE CETTE ÉTAPE 2
+                                // 2. ON AJOUTE LES DONNÉES DE CETTE ÉTAPE 2
                                 updatedData['nom'] = _nomController.text;
                                 updatedData['prenom'] = _prenomController.text;
                                 updatedData['sexe'] = _sexe;
@@ -199,7 +215,7 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
                                 updatedData['telephone'] = _telController.text;
                                 updatedData['email'] = _emailController.text;
 
-                                // ✅ 3. ON NAVIGUE VERS L'ÉTAPE 3 EN LUI DONNANT LE SAC À DOS MIS À JOUR
+                                // 3. ON NAVIGUE VERS L'ÉTAPE 3 EN LUI DONNANT LE SAC À DOS MIS À JOUR
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -237,11 +253,14 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
   }
 
   // WIDGET RÉUTILISABLE POUR LES CHAMPS DE TEXTE
+  // ✅ Ajout des paramètres `hintText` et `inputFormatters`
   Widget _buildTextField(
     String label, {
     required TextEditingController controller,
     TextInputType keyboardType = TextInputType.text,
     Widget? suffixIcon,
+    String? hintText,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,7 +273,10 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          inputFormatters: inputFormatters, // Applique les formatteurs de texte (comme la date)
           decoration: InputDecoration(
+            hintText: hintText, // Texte indicatif gris clair
+            hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
             suffixIcon: suffixIcon,
             filled: true,
             fillColor: Colors.white,
@@ -274,6 +296,35 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ✅ CLASSE POUR AJOUTER AUTOMATIQUEMENT LES BARRES (/) DANS LA DATE
+class DateInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    // 1. On retire toutes les barres existantes pour ne garder que les chiffres
+    String text = newValue.text.replaceAll('/', ''); 
+    
+    // 2. On limite la longueur à 8 chiffres maximum (JJMMAAAA)
+    if (text.length > 8) {
+      text = text.substring(0, 8); 
+    }
+    
+    // 3. On reconstruit la chaîne en ajoutant les barres aux bons endroits
+    String newText = '';
+    for (int i = 0; i < text.length; i++) {
+      if (i == 2 || i == 4) {
+        newText += '/';
+      }
+      newText += text[i];
+    }
+    
+    // 4. On retourne la nouvelle valeur avec le curseur placé à la fin
+    return TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
     );
   }
 }

@@ -22,12 +22,17 @@ class _RegisterStep3ScreenState extends State<RegisterStep3Screen> {
   String _selectedDepartement = 'Atlantique';
   String _selectedCommune = 'Abomey-Calavi';
   
-  final _quartierController = TextEditingController(text: 'Godomey');
+  // ✅ Quartier vidé par défaut
+  final _quartierController = TextEditingController();
   final _adresseController = TextEditingController(text: 'Rue 12.143, Maison Zongo');
 
   final List<String> _paysList = ['Bénin', 'Togo', 'Nigeria', 'Ghana', 'Côte d\'Ivoire'];
-  final List<String> _departementList = ['Atlantique', 'Littoral', 'Ouémé', 'Mono', 'Zou', 'Borgou'];
-  final List<String> _communeList = ['Abomey-Calavi', 'Cotonou', 'Porto-Novo', 'Parakou', 'Bohicon'];
+  
+  // ✅ Ajout d'Atakora dans la liste des départements
+  final List<String> _departementList = ['Atlantique', 'Atakora', 'Littoral', 'Ouémé', 'Mono', 'Zou', 'Borgou'];
+  
+  // ✅ Ajout de Natitingou dans la liste des communes
+  final List<String> _communeList = ['Abomey-Calavi', 'Natitingou', 'Cotonou', 'Porto-Novo', 'Parakou', 'Bohicon'];
 
   @override
   void dispose() {
@@ -94,9 +99,9 @@ class _RegisterStep3ScreenState extends State<RegisterStep3Screen> {
                       const SizedBox(height: 16),
                       _buildDropdownField('Commune', _selectedCommune, _communeList, (value) => setState(() => _selectedCommune = value!)),
                       const SizedBox(height: 16),
-                      _buildTextField('Quartier', controller: _quartierController),
+                      _buildTextField('Quartier', controller: _quartierController, hintText: 'Entrez votre quartier'),
                       const SizedBox(height: 16),
-                      _buildTextField('Adresse exacte', controller: _adresseController),
+                      _buildTextField('Adresse exacte', controller: _adresseController, hintText: 'Ex: Rue, Maison...'),
                       const SizedBox(height: 20),
                       _buildMapPreview(),
                       const SizedBox(height: 32),
@@ -166,7 +171,7 @@ class _RegisterStep3ScreenState extends State<RegisterStep3Screen> {
     );
   }
 
-    Widget _buildDropdownField(String label, String value, List<String> items, ValueChanged<String?> onChanged) {
+  Widget _buildDropdownField(String label, String value, List<String> items, ValueChanged<String?> onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -188,7 +193,7 @@ class _RegisterStep3ScreenState extends State<RegisterStep3Screen> {
                     style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),
                   ),
                 );
-              }).toList(), // ✅ La parenthèse est bien placée ici
+              }).toList(),
               onChanged: onChanged,
             ),
           ),
@@ -197,7 +202,7 @@ class _RegisterStep3ScreenState extends State<RegisterStep3Screen> {
     );
   }
 
-  Widget _buildTextField(String label, {required TextEditingController controller}) {
+  Widget _buildTextField(String label, {required TextEditingController controller, String? hintText}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -206,7 +211,11 @@ class _RegisterStep3ScreenState extends State<RegisterStep3Screen> {
         TextFormField(
           controller: controller,
           decoration: InputDecoration(
-            filled: true, fillColor: Colors.white, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            hintText: hintText,
+            hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+            filled: true, 
+            fillColor: Colors.white, 
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0F2B5B), width: 2)),

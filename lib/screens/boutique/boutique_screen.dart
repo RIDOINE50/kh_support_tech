@@ -320,7 +320,6 @@ class _BoutiqueScreenState extends State<BoutiqueScreen> {
         // 🔍 LOGIQUE DE FILTRAGE PAR CATÉGORIE
         if (_selectedCategory != 'Tous') {
           products = products.where((product) {
-            // On vérifie si la catégorie correspond (en s'adaptant à la casse ou aux clés possibles de ton backend)
             final catProduit = (product['categorie'] ?? product['category'] ?? '').toString().toLowerCase();
             return catProduit.contains(_selectedCategory.toLowerCase()) || 
                    _selectedCategory.toLowerCase().contains(catProduit);
@@ -359,153 +358,341 @@ class _BoutiqueScreenState extends State<BoutiqueScreen> {
             final rating = double.tryParse((product['rating'] ?? 4.5).toString()) ?? 4.5;
             final reviews = product['reviews'] ?? 12;
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: borderColor),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+            return GestureDetector(
+              // 🟢 ICI : On rend toute la carte cliquable pour voir les détails
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProductDetailScreen(product: product),
                   ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  // Image du produit
-                  Container(
-                    width: 85,
-                    height: 85,
-                    decoration: BoxDecoration(
-                      color: productPlaceholderBg,
-                      borderRadius: BorderRadius.circular(12),
+                );
+              },
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: borderColor),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
-                    child: product['image'] != null && product['image'].isNotEmpty
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.network(
-                              product['image'],
-                              width: 85,
-                              height: 85,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => const Icon(
-                                Icons.shopping_bag_outlined,
-                                color: Colors.grey,
-                                size: 35,
-                              ),
-                            ),
-                          )
-                        : const Icon(
-                            Icons.shopping_bag_outlined,
-                            color: Colors.grey,
-                            size: 35,
-                          ),
-                  ),
-                  const SizedBox(width: 14),
-                  
-                  // Infos produit
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          description,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            const Icon(Icons.star, color: Color(0xFFFBBF24), size: 14),
-                            const SizedBox(width: 4),
-                            Text(
-                              '$rating ($reviews)',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          priceFormatted,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Bouton d'ajout au panier
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      onPressed: () {
-                        CartService().addItem(
-                          CartItem(
-                            id: product['id'].toString(),
-                            title: title,
-                            price: price,
-                          ),
-                        );
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('$title ajouté au panier'),
-                            duration: const Duration(seconds: 1500),
-                            backgroundColor: Colors.green,
-                            behavior: SnackBarBehavior.floating,
-                            action: SnackBarAction(
-                              label: 'Voir',
-                              textColor: Colors.white,
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const CheckoutScreen()),
-                                );
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                      icon: const Icon(
-                        Icons.shopping_cart,
-                        color: Colors.white,
-                        size: 18,
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    // Image du produit
+                    Container(
+                      width: 85,
+                      height: 85,
+                      decoration: BoxDecoration(
+                        color: productPlaceholderBg,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      padding: const EdgeInsets.all(8),
+                      child: product['image'] != null && product['image'].isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                product['image'],
+                                width: 85,
+                                height: 85,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => const Icon(
+                                  Icons.shopping_bag_outlined,
+                                  color: Colors.grey,
+                                  size: 35,
+                                ),
+                              ),
+                            )
+                          : const Icon(
+                              Icons.shopping_bag_outlined,
+                              color: Colors.grey,
+                              size: 35,
+                            ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 14),
+                    
+                    // Infos produit
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            description,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Icon(Icons.star, color: Color(0xFFFBBF24), size: 14),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$rating ($reviews)',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            priceFormatted,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Bouton d'ajout au panier
+                    Container(
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          CartService().addItem(
+                            CartItem(
+                              id: product['id'].toString(),
+                              title: title,
+                              price: price,
+                            ),
+                          );
+
+                          ScaffoldMessenger.of(context).clearSnackBars();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('$title ajouté au panier'),
+                              duration: const Duration(seconds: 2),
+                              backgroundColor: Colors.green,
+                              behavior: SnackBarBehavior.floating,
+                              action: SnackBarAction(
+                                label: 'Voir',
+                                textColor: Colors.white,
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.shopping_cart,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        padding: const EdgeInsets.all(8),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },
         );
       },
+    );
+  }
+}
+
+// 🟢 Écran de Détail du Produit
+class ProductDetailScreen extends StatelessWidget {
+  final dynamic product;
+
+  const ProductDetailScreen({super.key, required this.product});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? (isDark ? Colors.white : Colors.black87);
+    final textSecondary = Theme.of(context).textTheme.bodyMedium?.color ?? (isDark ? Colors.grey[400]! : Colors.black54);
+
+    final title = product['nom'] ?? 'Sans nom';
+    final description = product['description'] ?? 'Aucune description disponible.';
+    final double price = double.tryParse(product['prix'].toString()) ?? 0.0;
+    final String priceFormatted = '${price.toStringAsFixed(0)} FCFA';
+    final rating = double.tryParse((product['rating'] ?? 4.5).toString()) ?? 4.5;
+    final reviews = product['reviews'] ?? 12;
+
+    return Scaffold(
+      backgroundColor: bgColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: textColor, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Détails du produit',
+          style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image principale
+            Center(
+              child: Container(
+                height: 250,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF374151) : const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: product['image'] != null && product['image'].isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.network(
+                          product['image'],
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Icon(
+                            Icons.shopping_bag_outlined,
+                            size: 80,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      )
+                    : const Icon(
+                        Icons.shopping_bag_outlined,
+                        size: 80,
+                        color: Colors.grey,
+                      ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Nom du produit
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Note et Avis
+            Row(
+              children: [
+                const Icon(Icons.star, color: Color(0xFFFBBF24), size: 18),
+                const SizedBox(width: 4),
+                Text(
+                  '$rating ($reviews avis)',
+                  style: TextStyle(fontSize: 14, color: textSecondary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Prix
+            Text(
+              priceFormatted,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Section Description
+            Text(
+              'Description',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: 14,
+                color: textSecondary,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+          onPressed: () {
+            CartService().addItem(
+              CartItem(
+                id: product['id'].toString(),
+                title: title,
+                price: price,
+              ),
+            );
+
+            ScaffoldMessenger.of(context).clearSnackBars();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('$title ajouté au panier'),
+                duration: const Duration(seconds: 2),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          },
+          child: const Text(
+            'Ajouter au panier',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+        ),
+      ),
     );
   }
 }

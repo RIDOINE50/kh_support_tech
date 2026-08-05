@@ -63,36 +63,47 @@ class ApiService {
   }
 
   // 📝 2. Création de compte utilisateur (Register public)
-  Future<Map<String, dynamic>> registerUser(Map<String, dynamic> userData) async {
-    final url = Uri.parse('$baseUrl/register');
+  Future<Map<String, dynamic>> registerUser(Map<String, dynamic> data) async {
+  print("🔍 ApiService : Préparation de la requête post vers /register...");
+  
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/register'), // Assure-toi que $baseUrl contient bien ton URL (ex: http://10.0.2.2:8000/api)
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode(data),
+    ).timeout(const Duration(seconds: 15));
 
-    try {
-      final response = await http.post(
-        url,
-        headers: _getHeaders(),
-        body: jsonEncode(userData),
-      ).timeout(const Duration(seconds: 60)); // ✅ CHANGÉ À 60 SECONDES
+    print("🔍 ApiService : Réponse brute reçue de Laravel ! Code: ${response.statusCode}");
+    print("📦 Corps de la réponse : ${response.body}");
 
-      final data = jsonDecode(response.body);
+    // On décode la réponse de Laravel
+    final responseData = jsonDecode(response.body);
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        return {
-          'success': true,
-          'token': data['token'] ?? data['access_token'],
-          'message': data['message'] ?? 'Compte créé avec succès !',
-          ...data,
-        };
-      } else {
-        return {
-          'success': false,
-          'error': data['message'] ?? 'Erreur lors de la création du compte (${response.statusCode})',
-        };
-      }
-    } catch (e) {
-      print("❌ Erreur inscription utilisateur: $e");
-      return {'success': false, 'error': 'Erreur de connexion au serveur: $e'};
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return {
+        'success': true,
+        'message': responseData['message'] ?? 'Compte créé avec succès !',
+        'token': responseData['token'],
+        'user': responseData['user'],
+      };
+    } else {
+      return {
+        'success': false,
+        'error': responseData['message'] ?? responseData['error'] ?? 'Erreur lors de l\'inscription',
+      };
     }
+
+  } catch (e) {
+    print("❌ ApiService ERREUR FATALE : $e");
+    return {
+      'success': false,
+      'error': 'Impossible de joindre le serveur. Erreur : $e',
+    };
   }
+}
 
   // 🎓 3. Inscription à une Formation (Route protégée /inscriptions)
   Future<Map<String, dynamic>> creerInscription(Map<String, dynamic> inscriptionData, String token) async {

@@ -1,10 +1,12 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
-import '../../services/auth_service.dart'; // ✅ Pour appeler l'inscription réelle
-import '../main/main_screen.dart';              // ✅ Pour rediriger vers le Dashboard (adapte le chemin si ton fichier est ailleurs)
+import '../../services/auth_service.dart';
+import '../main/main_screen.dart';
+import 'terms_and_conditions_screen.dart';
+import 'app_legal_texts.dart';
 
 class RegisterStep6Screen extends StatefulWidget {
-  // ✅ 1. ON REÇOIT LE SAC À DOS COMPLET DES ÉTAPES PRÉCÉDENTES
   final Map<String, dynamic> formData;
 
   const RegisterStep6Screen({
@@ -19,18 +21,29 @@ class RegisterStep6Screen extends StatefulWidget {
 class _RegisterStep6ScreenState extends State<RegisterStep6Screen> {
   bool _acceptTerms = true;
   bool _acceptPrivacy = true;
-  bool _isLoading = false; // ✅ Pour gérer l'état de chargement
+  bool _isLoading = false;
+
+  void _openLegalScreen(String title, String content) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TermsAndConditionsScreen(
+          title: title,
+          content: content,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    // ✅ 2. ON EXTRAIT LES VRAIES DONNÉES DU SAC À DOS (avec des valeurs par défaut au cas où)
     final profile = widget.formData['profile'] ?? 'Particulier';
-    final nom = widget.formData['nom'] ?? 'KPATCHA';
-    final prenom = widget.formData['prenom'] ?? 'Hounnonnon';
-    final telephone = widget.formData['telephone'] ?? '+229 97 12 34 56';
-    final email = widget.formData['email'] ?? 'kpatcha@gmail.com';
-    final commune = widget.formData['commune'] ?? 'Abomey-Calavi';
-    final departement = widget.formData['departement'] ?? 'Atlantique';
+    final nom = widget.formData['nom'] ?? '';
+    final prenom = widget.formData['prenom'] ?? '';
+    final telephone = widget.formData['telephone'] ?? '';
+    final email = widget.formData['email'] ?? '';
+    final commune = widget.formData['commune'] ?? '';
+    final departement = widget.formData['departement'] ?? '';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
@@ -83,7 +96,7 @@ class _RegisterStep6ScreenState extends State<RegisterStep6Screen> {
               ),
               const SizedBox(height: 24),
 
-              // CARTE DE RÉSUMÉ (DYNAMIQUE)
+              // CARTE DE RÉSUMÉ
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -115,17 +128,21 @@ class _RegisterStep6ScreenState extends State<RegisterStep6Screen> {
               ),
               const SizedBox(height: 24),
 
-              // CASES À COCHER (Conditions)
-              _buildCheckboxRow(
-                'J\'accepte les conditions générales d\'utilisation',
-                _acceptTerms,
-                (val) => setState(() => _acceptTerms = val ?? false),
+              // CASES À COCHER AVEC LIENS CLIQUABLES
+              _buildLegalCheckboxRow(
+                prefixText: 'J\'accepte les ',
+                linkText: 'conditions générales d\'utilisation',
+                onTapLink: () => _openLegalScreen(AppLegalTexts.termsTitle, AppLegalTexts.termsContent),
+                value: _acceptTerms,
+                onChanged: (val) => setState(() => _acceptTerms = val ?? false),
               ),
               const SizedBox(height: 12),
-              _buildCheckboxRow(
-                'J\'accepte la politique de confidentialité',
-                _acceptPrivacy,
-                (val) => setState(() => _acceptPrivacy = val ?? false),
+              _buildLegalCheckboxRow(
+                prefixText: 'J\'accepte la ',
+                linkText: 'politique de confidentialité',
+                onTapLink: () => _openLegalScreen(AppLegalTexts.privacyTitle, AppLegalTexts.privacyContent),
+                value: _acceptPrivacy,
+                onChanged: (val) => setState(() => _acceptPrivacy = val ?? false),
               ),
               const Spacer(),
 
@@ -149,20 +166,17 @@ class _RegisterStep6ScreenState extends State<RegisterStep6Screen> {
                   Expanded(
                     flex: 2,
                     child: ElevatedButton(
-                      // ✅ 3. APPEL RÉEL À L'API LARAVEL
                       onPressed: (_acceptTerms && _acceptPrivacy && !_isLoading)
                           ? () async {
                               setState(() => _isLoading = true);
 
-                              // Appel du service d'authentification avec TOUT le formData
                               AuthService authService = AuthService();
                               var result = await authService.registerComplete(widget.formData);
 
-                              setState(() => _isLoading = false);
-
                               if (mounted) {
+                                setState(() => _isLoading = false);
+
                                 if (result['success'] == true) {
-                                  // ✅ SUCCÈS : Message vert + Redirection directe au Dashboard
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('✅ ${result['message']}'),
@@ -173,14 +187,14 @@ class _RegisterStep6ScreenState extends State<RegisterStep6Screen> {
                                   Navigator.pushAndRemoveUntil(
                                     context,
                                     MaterialPageRoute(builder: (context) => const MainScreen()),
-                                    (route) => false, // Efface l'historique pour qu'on ne puisse pas revenir en arrière
+                                    (route) => false,
                                   );
                                 } else {
-                                  // ❌ ERREUR : Afficher le message de Laravel (ex: "L'email est déjà pris")
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('❌ ${result['error'] ?? 'Erreur lors de l\'inscription'}'),
                                       backgroundColor: Colors.red,
+                                      duration: const Duration(seconds: 4),
                                     ),
                                   );
                                 }
@@ -219,8 +233,6 @@ class _RegisterStep6ScreenState extends State<RegisterStep6Screen> {
     );
   }
 
-  // --- WIDGETS RÉUTILISABLES ---
-
   Widget _buildSummaryRow(IconData icon, String label, String value) {
     return Row(
       children: [
@@ -243,7 +255,13 @@ class _RegisterStep6ScreenState extends State<RegisterStep6Screen> {
     );
   }
 
-  Widget _buildCheckboxRow(String text, bool value, ValueChanged<bool?> onChanged) {
+  Widget _buildLegalCheckboxRow({
+    required String prefixText,
+    required String linkText,
+    required VoidCallback onTapLink,
+    required bool value,
+    required ValueChanged<bool?> onChanged,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -261,14 +279,21 @@ class _RegisterStep6ScreenState extends State<RegisterStep6Screen> {
         Expanded(
           child: RichText(
             text: TextSpan(
+              style: const TextStyle(fontSize: 13, color: Color(0xFF374151), height: 1.4),
               children: [
+                TextSpan(text: prefixText),
                 TextSpan(
-                  text: text,
-                  style: const TextStyle(fontSize: 13, color: Color(0xFF374151), height: 1.4),
+                  text: linkText,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2B5B),
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()..onTap = onTapLink,
                 ),
                 const TextSpan(
                   text: ' *',
-                  style: TextStyle(fontSize: 13, color: Colors.red, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
