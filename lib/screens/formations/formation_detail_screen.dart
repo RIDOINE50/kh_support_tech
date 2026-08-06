@@ -5,6 +5,8 @@ import '../payment/payment_screen.dart';
 class FormationDetailScreen extends StatefulWidget {
   final Map<String, dynamic> formationData;
 
+
+
   const FormationDetailScreen({super.key, required this.formationData});
 
   @override
