@@ -1,0 +1,9 @@
+name: TEST SIMPLE
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello Boss - Test fonctionne"
