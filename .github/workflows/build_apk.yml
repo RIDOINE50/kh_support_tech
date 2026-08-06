@@ -38,6 +38,8 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
       
+
+
       # 7. Rendre l'APK téléchargeable
       - name: Upload APK
         uses: actions/upload-artifact@v4
