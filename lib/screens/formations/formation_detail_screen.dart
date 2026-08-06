@@ -61,21 +61,16 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
       backgroundColor: bgColor, // ✅ Fond adaptatif
       body: CustomScrollView(
         slivers: [
-          // 1. HEADER AVEC GRANDE IMAGE
+          // 1. HEADER AVEC GRANDE IMAGE (SANS PARTAGE NI LIKE)
           SliverAppBar(
             expandedHeight: 280,
             pinned: true,
-            backgroundColor: AppColors.primary, // Reste bleu pour un beau contraste avec l'image
+            backgroundColor: AppColors.primary, 
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
               onPressed: () => Navigator.pop(context),
             ),
-            actions: const [
-              Icon(Icons.share, color: Colors.white),
-              SizedBox(width: 8),
-              Icon(Icons.favorite_border, color: Colors.white),
-              SizedBox(width: 8),
-            ],
+            // ✅ ACTIONS SUPPRIMÉES ICI
             flexibleSpace: FlexibleSpaceBar(
               background: imageUrl.isNotEmpty
                   ? Image.network(
@@ -94,7 +89,7 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
                 // 2. TITRE ET INFOS PRINCIPALES
                 Container(
                   padding: const EdgeInsets.all(20),
-                  color: cardColor, // ✅ Fond de carte adaptatif
+                  color: cardColor, 
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -110,7 +105,7 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
                       const SizedBox(height: 8),
                       Text(
                         title,
-                        style: TextStyle( // ✅ Texte adaptatif
+                        style: TextStyle( 
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: textColor,
@@ -124,7 +119,7 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
                           const SizedBox(width: 4),
                           Text(
                             '$rating ($reviews avis)',
-                            style: TextStyle(color: textSecondary, fontSize: 13), // ✅ Texte adaptatif
+                            style: TextStyle(color: textSecondary, fontSize: 13), 
                           ),
                           const SizedBox(width: 16),
                           Icon(Icons.visibility_outlined, color: textSecondary, size: 18),
@@ -160,13 +155,13 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: cardColor, // ✅ Fond adaptatif
+                    color: cardColor, 
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [BoxShadow(color: shadowColor, blurRadius: 10, offset: const Offset(0, 4))],
                   ),
                   child: Text(
                     descriptionText,
-                    style: TextStyle(color: textSecondary, fontSize: 14, height: 1.6), // ✅ Texte adaptatif
+                    style: TextStyle(color: textSecondary, fontSize: 14, height: 1.6), 
                   ),
                 ),
 
@@ -178,7 +173,7 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: cardColor, // ✅ Fond adaptatif
+                    color: cardColor, 
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [BoxShadow(color: shadowColor, blurRadius: 10, offset: const Offset(0, 4))],
                   ),
@@ -195,7 +190,7 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
                               width: 26,
                               height: 26,
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.15), // Légèrement plus visible en mode sombre
+                                color: AppColors.primary.withOpacity(0.15), 
                                 shape: BoxShape.circle,
                               ),
                               child: Center(
@@ -213,7 +208,7 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
                             Expanded(
                               child: Text(
                                 module,
-                                style: TextStyle( // ✅ Texte adaptatif
+                                style: TextStyle( 
                                   color: textColor,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
@@ -265,7 +260,7 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: cardColor, // ✅ Fond adaptatif
+                    color: cardColor, 
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [BoxShadow(color: shadowColor, blurRadius: 10, offset: const Offset(0, 4))],
                   ),
@@ -286,7 +281,7 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
                           children: [
                             Text(
                               'Centre KH Support Tech',
-                              style: TextStyle( // ✅ Texte adaptatif
+                              style: TextStyle( 
                                 fontWeight: FontWeight.bold,
                                 color: textColor,
                                 fontSize: 15,
@@ -294,8 +289,8 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Natitingou , Ourbona',
-                              style: TextStyle(color: textSecondary, fontSize: 12), // ✅ Texte adaptatif
+                              'Natitingou, Ourbona',
+                              style: TextStyle(color: textSecondary, fontSize: 12), 
                             ),
                           ],
                         ),
@@ -315,10 +310,10 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: cardColor, // ✅ Fond adaptatif (au lieu de Colors.white)
+          color: cardColor, 
           boxShadow: [
             BoxShadow(
-              color: shadowColor, // ✅ Ombre adaptative
+              color: shadowColor, 
               blurRadius: 10,
               offset: const Offset(0, -5),
             )
@@ -331,7 +326,7 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Prix total', style: TextStyle(color: textSecondary, fontSize: 12)), // ✅ Texte adaptatif
+                  Text('Prix total', style: TextStyle(color: textSecondary, fontSize: 12)), 
                   Text(
                     '${price.toStringAsFixed(0)} FCFA',
                     style: const TextStyle(
@@ -394,7 +389,7 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         decoration: BoxDecoration(
-          color: cardColor, // ✅ Fond adaptatif
+          color: cardColor, 
           borderRadius: BorderRadius.circular(14),
           boxShadow: [BoxShadow(color: shadowColor, blurRadius: 10, offset: const Offset(0, 4))],
         ),
