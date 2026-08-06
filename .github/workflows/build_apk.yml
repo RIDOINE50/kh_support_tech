@@ -1,49 +1,38 @@
-name: Build Flutter APK
+   name: Build Flutter APK
 
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+   on:
+     push:
+       branches: [ main, master ]
+     workflow_dispatch:  # ← CETTE LIGNE PERMET LE DÉCLENCHEMENT MANUEL
 
-jobs:
-  build-apk:
-    runs-on: ubuntu-latest
-    
-    steps:
-      # 1. Récupérer le code
-      - uses: actions/checkout@v4
-      
-      # 2. Installer Java 17 (Obligatoire pour les nouvelles versions d'Android)
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-      
-      # 3. Installer Flutter 3.24.0
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.0' 
-          cache: true
-      
-      # 4. NETTOYAGE (Ajouté pour éviter les erreurs de cache corrompu)
-      - name: Flutter Clean
-        run: flutter clean
-        
-      # 5. Installer les dépendances
-      - name: Install dependencies
-        run: flutter pub get
-      
-      # 6. Compiler l'APK
-      - name: Build APK
-        run: flutter build apk --release
-      
-
-
-      # 7. Rendre l'APK téléchargeable
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: kh-support-tech-release
-          path: build/app/outputs/flutter-apk/app-release.apk
-   # Test de relance - $(date +%Y%m%d)
+   jobs:
+     build-apk:
+       runs-on: ubuntu-latest
+       
+       steps:
+         - uses: actions/checkout@v4
+         
+         - uses: actions/setup-java@v4
+           with:
+             distribution: 'zulu'
+             java-version: '17'
+         
+         - uses: subosito/flutter-action@v2
+           with:
+             flutter-version: '3.24.0' 
+             cache: true
+         
+         - name: Flutter Clean
+           run: flutter clean
+           
+         - name: Install dependencies
+           run: flutter pub get
+         
+         - name: Build APK
+           run: flutter build apk --release
+         
+         - name: Upload APK
+           uses: actions/upload-artifact@v4
+           with:
+             name: kh-support-tech-release
+             path: build/app/outputs/flutter-apk/app-release.apk
