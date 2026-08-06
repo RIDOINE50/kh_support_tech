@@ -1,58 +1,129 @@
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart'; // ✅ 1. IMPORT DU PACKAGE DE PARTAGE
+import 'package:url_launcher/url_launcher.dart'; 
 import '../../core/constants/app_colors.dart';
-import '../payment/payment_screen.dart'; 
+import '../../services/formation_api.dart'; 
+import 'package:kh_support_tech/screens/payment/payment_screen.dart';
+import 'formation_detail_screen.dart';
+import '../main/main_screen.dart'; 
 
-class FormationDetailScreen extends StatefulWidget {
-  final Map<String, dynamic> formationData;
+// Modèle de données
+class Formation {
+  final int id;
+  final String title;
+  final String duration;
+  final double price;
+  final String category;
+  final double rating;
+  final int reviews;
+  final String? imageUrl;
+  final String? description;
 
-  const FormationDetailScreen({super.key, required this.formationData});
+  Formation({
+    required this.id,
+    required this.title,
+    required this.duration,
+    required this.price,
+    required this.category,
+    required this.rating,
+    required this.reviews,
+    this.imageUrl,
+    this.description,
+  });
 
-  @override
-  State<FormationDetailScreen> createState() => _FormationDetailScreenState();
+  factory Formation.fromJson(Map<String, dynamic> json) {
+    return Formation(
+      id: json['id'] ?? 0,
+      title: json['nom'] ?? 'Formation',
+      duration: json['duree'] ?? 'Non spécifiée',
+      price: double.tryParse((json['prix'] ?? 0).toString()) ?? 0.0,
+      category: (json['categorie'] ?? 'Autres').toString(),
+      rating: double.tryParse((json['rating'] ?? 4.5).toString()) ?? 4.5,
+      reviews: json['reviews'] ?? 12,
+      imageUrl: json['image'],
+      description: json['description'],
+    );
+  }
 }
 
-class _FormationDetailScreenState extends State<FormationDetailScreen> {
-  late final String descriptionText;
-  
-  // ✅ 2. ÉTAT POUR LE LIKE (FAVORI)
-  bool _isLiked = false;
+class FormationsScreen extends StatefulWidget {
+  const FormationsScreen({super.key});
 
-  final List<String> modules = [
-    "Introduction et fondamentaux",
-    "Installation de l'environnement de travail",
-    "Les concepts clés et la théorie",
-    "Atelier pratique : Premier projet",
-    "Techniques avancées et optimisation",
-    "Projet final et certification"
-  ];
+  @override
+  State<FormationsScreen> createState() => _FormationsScreenState();
+}
 
-  final List<String> galleryImages = [
-    "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop",
-  ];
+class _FormationsScreenState extends State<FormationsScreen> {
+  String _selectedFilter = 'Toutes';
+  String _searchQuery = '';
+  List<Formation> _allFormations = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  final List<String> _filters = ['Toutes', 'Informatique', 'IA', 'Drone', 'Autres'];
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    final apiDesc = widget.formationData['description']?.toString();
-    descriptionText = (apiDesc != null && apiDesc.isNotEmpty)
-        ? apiDesc
-        : "Maîtrisez les fondamentaux et les techniques avancées de ce domaine. Cette formation complète vous permettra de développer des compétences pratiques et immédiatement applicables en entreprise.";
+    _chargerFormationsReelles();
   }
 
-  // ✅ 3. FONCTION DE PARTAGE
-  void _shareFormation() {
-    final String title = widget.formationData['title'] ?? 'Formation';
-    final double price = double.tryParse((widget.formationData['price'] ?? 0).toString()) ?? 0.0;
-    
-    final String shareText = '🚀 Découvrez la formation "$title" sur KH SERVICES !\n'
-        '💰 Prix : ${price.toStringAsFixed(0)} FCFA\n'
-        'Rejoignez-nous pour monter en compétences !';
-    
-    // Ouvre le menu de partage natif du téléphone (WhatsApp, SMS, etc.)
-    Share.share(shareText);
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _chargerFormationsReelles() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final List<dynamic> jsonData = await FormationApi.getFormations();
+      setState(() {
+        _allFormations = jsonData.map((json) => Formation.fromJson(json)).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Impossible de charger les formations. Vérifie ta connexion.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _goToHome() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const MainScreen()),
+      (route) => false, 
+    );
+  }
+
+  List<Formation> get _filteredFormations {
+    return _allFormations.where((formation) {
+      final matchesFilter = _selectedFilter == 'Toutes' ||
+          formation.category.toLowerCase() == _selectedFilter.toLowerCase();
+      final matchesSearch = _searchQuery.isEmpty ||
+          formation.title.toLowerCase().contains(_searchQuery.toLowerCase());
+      return matchesFilter && matchesSearch;
+    }).toList();
+  }
+
+  Future<void> _lancerContact(String titreFormation) async {
+    final String numeroWhatsApp = '2290161127145'; 
+    final String message = Uri.encodeComponent('Bonjour, je suis intéressé par la formation : "$titreFormation". Pouvez-vous me donner plus de détails ?');
+    final Uri url = Uri.parse('https://wa.me/$numeroWhatsApp?text=$message');
+
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Impossible d\'ouvrir WhatsApp. Vérifiez que l\'application est installée.')),
+        );
+      }
+    }
   }
 
   @override
@@ -62,383 +133,269 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
     final cardColor = Theme.of(context).cardColor;
     final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? (isDark ? Colors.white : Colors.black87);
     final textSecondary = Theme.of(context).textTheme.bodyMedium?.color ?? (isDark ? Colors.grey[400]! : Colors.black54);
-    final shadowColor = Colors.black.withOpacity(isDark ? 0.3 : 0.04);
+    
+    final searchBgColor = isDark ? const Color(0xFF1F2937) : const Color(0xFFF3F4F6);
+    final filterBorderColor = isDark ? Colors.grey[700]! : const Color(0xFFE5E7EB);
+    final shadowColor = Colors.black.withOpacity(isDark ? 0.3 : 0.08);
+    final placeholderBg = isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB);
+    final placeholderIcon = isDark ? Colors.grey[400]! : const Color(0xFF9CA3AF);
 
-    final int formationId = widget.formationData['id'] ?? 0;
-    final String title = widget.formationData['title'] ?? 'Formation';
-    final String category = widget.formationData['categorie'] ?? 'INFORMATIQUE';
-    final double rating = double.tryParse((widget.formationData['rating'] ?? 4.5).toString()) ?? 4.5;
-    final int reviews = int.tryParse((widget.formationData['reviews'] ?? 12).toString()) ?? 12;
-    final double price = double.tryParse((widget.formationData['price'] ?? 0).toString()) ?? 0.0;
-    final String imageUrl = widget.formationData['imageUrl'] ?? '';
+    final listToDisplay = _filteredFormations;
+    const double imageSize = 112; 
 
     return Scaffold(
       backgroundColor: bgColor,
-      body: CustomScrollView(
-        slivers: [
-          // 1. HEADER AVEC GRANDE IMAGE
-          SliverAppBar(
-            expandedHeight: 280,
-            pinned: true,
-            backgroundColor: AppColors.primary,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
-              onPressed: () => Navigator.pop(context),
-            ),
-            // ✅ 4. BOUTONS PARTAGE ET LIKE INTERACTIFS
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.share, color: Colors.white),
-                onPressed: _shareFormation,
-              ),
-              IconButton(
-                icon: Icon(
-                  // Change l'icône selon l'état du like
-                  _isLiked ? Icons.favorite : Icons.favorite_border,
-                  // Couleur : Bleu (AppColors.primary) en mode clair, Blanc en mode sombre
-                  color: _isLiked ? (isDark ? Colors.white : AppColors.primary) : Colors.white,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _isLiked = !_isLiked; // Active ou désactive le like
-                  });
-                },
-              ),
-              const SizedBox(width: 8),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: imageUrl.isNotEmpty
-                  ? Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
+      body: SafeArea(
+        child: _isLoading 
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : _errorMessage != null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.wifi_off, size: 48, color: textSecondary),
+                    const SizedBox(height: 16),
+                    Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _chargerFormationsReelles,
+                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+                      child: const Text('Réessayer'),
                     )
-                  : _buildImagePlaceholder(),
-            ),
-          ),
-
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 2. TITRE ET INFOS PRINCIPALES
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  color: cardColor,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        category.toUpperCase(),
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
+                  ],
+                ),
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: textColor),
+                          onPressed: _goToHome, 
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                          height: 1.3,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          const Icon(Icons.star, color: Color(0xFFFBBF24), size: 18),
-                          const SizedBox(width: 4),
-                          Text(
-                            '$rating ($reviews avis)',
-                            style: TextStyle(color: textSecondary, fontSize: 13),
+                        Expanded(
+                          child: Text(
+                            'Formations',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
                           ),
-                          const SizedBox(width: 16),
-                          Icon(Icons.visibility_outlined, color: textSecondary, size: 18),
-                          const SizedBox(width: 4),
-                          Text('1.2k vues', style: TextStyle(color: textSecondary, fontSize: 13)),
-                        ],
+                        ),
+                        const SizedBox(width: 48),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(color: searchBgColor, borderRadius: BorderRadius.circular(12)),
+                      child: TextField(
+                        controller: _searchController,
+                        style: TextStyle(color: textColor),
+                        onChanged: (value) => setState(() => _searchQuery = value),
+                        decoration: InputDecoration(
+                          icon: Icon(Icons.search, color: textSecondary, size: 20),
+                          hintText: 'Rechercher une formation...',
+                          hintStyle: TextStyle(color: textSecondary),
+                          border: InputBorder.none,
+                        ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // 3. CARTES D'INFORMATIONS CLÉS
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      _buildInfoCard(Icons.access_time, 'Durée', 'Flexible', cardColor, textColor, textSecondary, shadowColor),
-                      const SizedBox(width: 12),
-                      _buildInfoCard(Icons.emoji_events_outlined, 'Niveau', 'Tous niveaux', cardColor, textColor, textSecondary, shadowColor),
-                      const SizedBox(width: 12),
-                      _buildInfoCard(Icons.verified_outlined, 'Certificat', 'Inclus', cardColor, textColor, textSecondary, shadowColor),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // 4. DESCRIPTION
-                _buildSectionTitle('Description', textColor),
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [BoxShadow(color: shadowColor, blurRadius: 10, offset: const Offset(0, 4))],
-                  ),
-                  child: Text(
-                    descriptionText,
-                    style: TextStyle(color: textSecondary, fontSize: 14, height: 1.6),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // 5. PROGRAMME / MODULES
-                _buildSectionTitle('Programme de la formation', textColor),
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [BoxShadow(color: shadowColor, blurRadius: 10, offset: const Offset(0, 4))],
-                  ),
-                  child: Column(
-                    children: modules.asMap().entries.map((entry) {
-                      int idx = entry.key;
-                      String module = entry.value;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 26,
-                              height: 26,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.15),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '${idx + 1}',
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 36,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: _filters.length,
+                      separatorBuilder: (context, index) => const SizedBox(width: 8),
+                      itemBuilder: (context, index) {
+                        final filter = _filters[index];
+                        final isSelected = filter == _selectedFilter;
+                        return GestureDetector(
+                          onTap: () => setState(() => _selectedFilter = filter),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isSelected ? AppColors.primary : (isDark ? Colors.transparent : Colors.white),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: isSelected ? AppColors.primary : filterBorderColor),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
+                            child: Center(
                               child: Text(
-                                module,
+                                filter,
                                 style: TextStyle(
-                                  color: textColor,
-                                  fontSize: 14,
+                                  color: isSelected ? Colors.white : textColor,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // 6. GALERIE PHOTOS
-                _buildSectionTitle('Galerie photos', textColor),
-                SizedBox(
-                  height: 140,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    itemCount: galleryImages.length,
-                    separatorBuilder: (context, index) => const SizedBox(width: 12),
-                    itemBuilder: (context, index) {
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          galleryImages[index],
-                          width: 200,
-                          height: 140,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            width: 200,
-                            color: isDark ? Colors.grey[800] : Colors.grey[300],
-                            child: const Icon(Icons.image, color: Colors.grey),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // 7. LOCALISATION
-                _buildSectionTitle('Lieu de la formation', textColor),
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [BoxShadow(color: shadowColor, blurRadius: 10, offset: const Offset(0, 4))],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.location_on, color: AppColors.primary, size: 24),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Centre KH Support Tech',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                                fontSize: 15,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Natitingou, Ourbona',
-                              style: TextStyle(color: textSecondary, fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 100),
-              ],
-            ),
-          ),
-        ],
-      ),
-
-      // 8. BARRE FIXE EN BAS
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: cardColor,
-          boxShadow: [
-            BoxShadow(
-              color: shadowColor,
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            )
-          ],
-        ),
-        child: SafeArea(
-          child: Row(
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Prix total', style: TextStyle(color: textSecondary, fontSize: 12)),
-                  Text(
-                    '${price.toStringAsFixed(0)} FCFA',
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                        );
+                      },
                     ),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: listToDisplay.isEmpty
+                        ? Center(child: Text('Aucune formation ne correspond à votre recherche.', style: TextStyle(color: textSecondary)))
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            itemCount: listToDisplay.length,
+                            itemBuilder: (context, index) {
+                              final formation = listToDisplay[index];
+                              return _buildFormationCard(
+                                formation, cardColor, textColor, textSecondary, shadowColor, placeholderBg, placeholderIcon, imageSize,
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),
-              const Spacer(),
-              SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PaymentScreen(
-                          formationTitle: title,
-                          formationId: formationId,
-                          montant: price,
-                        ),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    "S'inscrire maintenant",
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ],
+      ),
+    );
+  }
+
+  Widget _buildFormationCard(
+    Formation formation, 
+    Color cardColor, 
+    Color textColor, 
+    Color textSecondary,
+    Color shadowColor,
+    Color placeholderBg,
+    Color placeholderIcon,
+    double imageSize,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FormationDetailScreen(
+              formationData: {
+                'id': formation.id,
+                'title': formation.title,
+                'subtitle': '${formation.duration} - ${formation.price.toStringAsFixed(0)} FCFA',
+                'price': formation.price,
+                'imageUrl': formation.imageUrl ?? '',
+                'rating': formation.rating,
+                'reviews': formation.reviews,
+                'categorie': formation.category,
+                'description': formation.description ?? '',
+              },
+            ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title, Color textColor) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Text(
-        title,
-        style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: textColor),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(IconData icon, String label, String value, Color cardColor, Color textColor, Color textSecondary, Color shadowColor) {
-    return Expanded(
+        );
+      },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: cardColor,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [BoxShadow(color: shadowColor, blurRadius: 10, offset: const Offset(0, 4))],
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(color: shadowColor, blurRadius: 4, offset: const Offset(0, 2))],
         ),
-        child: Column(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: AppColors.primary, size: 22),
-            const SizedBox(height: 6),
-            Text(label, style: TextStyle(color: textSecondary, fontSize: 11)),
-            const SizedBox(height: 2),
-            Text(
-              value,
-              style: TextStyle(fontWeight: FontWeight.bold, color: textColor, fontSize: 12),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: formation.imageUrl != null && formation.imageUrl!.isNotEmpty
+                  ? Image.network(
+                      formation.imageUrl!,
+                      width: imageSize,
+                      height: imageSize,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(placeholderBg, placeholderIcon, imageSize),
+                    )
+                  : _buildPlaceholderImage(placeholderBg, placeholderIcon, imageSize),
+            ),
+            const SizedBox(width: 14),
+            
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    formation.title,
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: textColor),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${formation.duration} • ${formation.price.toStringAsFixed(0)} FCFA',
+                    style: TextStyle(fontSize: 12, color: textSecondary),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: Color(0xFFFBBF24), size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${formation.rating} (${formation.reviews})',
+                        style: TextStyle(fontSize: 11, color: textSecondary, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PaymentScreen(
+                                  formationTitle: formation.title,
+                                  formationId: formation.id,
+                                  montant: double.tryParse(formation.price.toString()) ?? 0.0,
+                                ),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                          ),
+                          child: const Text('S\'inscrire', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      
+                      InkWell(
+                        onTap: () => _lancerContact(formation.title),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.green.withOpacity(0.3)),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.chat_bubble_outline, color: Colors.green, size: 18),
+                              SizedBox(width: 4),
+                              Text('Contact', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
             ),
           ],
         ),
@@ -446,12 +403,12 @@ class _FormationDetailScreenState extends State<FormationDetailScreen> {
     );
   }
 
-  Widget _buildImagePlaceholder() {
+  Widget _buildPlaceholderImage(Color bgColor, Color iconColor, double size) {
     return Container(
-      color: AppColors.primary,
-      child: const Center(
-        child: Icon(Icons.school, size: 64, color: Colors.white38),
-      ),
+      width: size,
+      height: size,
+      color: bgColor,
+      child: Icon(Icons.school, color: iconColor, size: size * 0.45),
     );
   }
 }
