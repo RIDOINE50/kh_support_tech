@@ -20,11 +20,11 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  // ✅ SÉPARATION DES NUMÉROS POUR PLUS DE CLARTÉ
-  static const String momoNumberDisplay = '01 57 86 59 09'; // Pour l'affichage
-  static const String whatsappNumberLink = '2290161127145'; // Pour le lien WhatsApp
-  
+  // Numéro pour l'affichage et pour le lien (le même qui marche dans Formations)
+  static const String numeroWhatsApp = '2290161127145';
+  static const String momoNumberDisplay = '01 57 86 59 09';
   static const String momoName = 'KH SERVICES';
+  
   bool _isNumberCopied = false;
 
   @override
@@ -48,25 +48,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
   }
 
-  // ✅ 2. Fonction pour ouvrir WhatsApp (MÊME MÉTHODE ÉPROUVÉE QUE FORMATIONS)
+  // ✅ 2. Fonction pour ouvrir WhatsApp (COPIE EXACTE DE LA LOGIQUE FORMATIONS)
   Future<void> _envoyerPreuveWhatsApp() async {
-    final String message = 'Bonjour KH SERVICES. 👋\n\n'
-        'Je viens d\'effectuer le paiement de *${widget.montant.toStringAsFixed(0)} FCFA* \n'
-        'pour la formation : *${widget.formationTitle}*.\n\n'
-        'Veuillez trouver ci-joint la capture d\'écran de mon reçu de transaction.\n'
-        'Merci de bien vouloir valider mon inscription.';
+    // On encode TOUT le message d'un coup, exactement comme dans FormationsScreen
+    final String message = Uri.encodeComponent(
+      'Bonjour KH SERVICES. 👋\n\n'
+      'Je viens d\'effectuer le paiement de *${widget.montant.toStringAsFixed(0)} FCFA* \n'
+      'pour la formation : *${widget.formationTitle}*.\n\n'
+      'Veuillez trouver ci-joint la capture d\'écran de mon reçu de transaction.\n'
+      'Merci de bien vouloir valider mon inscription.'
+    );
 
-    // ✅ Utilisation du bon numéro WhatsApp et de Uri.encodeComponent
-    final Uri url = Uri.parse('https://wa.me/$whatsappNumberLink?text=${Uri.encodeComponent(message)}');
+    final Uri url = Uri.parse('https://wa.me/$numeroWhatsApp?text=$message');
 
-    // ✅ Utilisation de LaunchMode.externalApplication pour forcer l'ouverture de l'app
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
+    // ✅ C'EST ICI LA CORRECTION : On essaie directement de lancer, sans passer par canLaunchUrl
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Impossible d\'ouvrir WhatsApp. Vérifiez qu\'il est installé.'),
+            content: Text('Impossible d\'ouvrir WhatsApp. Vérifiez que l\'application est installée.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -219,7 +219,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
             height: 54,
             child: ElevatedButton.icon(
               onPressed: _envoyerPreuveWhatsApp,
-              // ✅ Icône standard Flutter pour éviter toute erreur rouge
               icon: const Icon(Icons.wechat, color: Colors.white, size: 24), 
               label: const Text(
                 'J\'ai payé, envoyer la preuve',

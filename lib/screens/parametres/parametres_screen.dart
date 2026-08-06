@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
-import '../../main.dart'; // ✅ 1. AJOUTÉ : Pour accéder au gestionnaire de thème global
+import '../../main.dart'; // Pour accéder au gestionnaire de thème global
+
+// ✅ AJOUT DES IMPORTS POUR LA NAVIGATION
+import '../apropos/apropos_screen.dart';
+import '../profile/profile_screen.dart';
 
 class ParametresScreen extends StatefulWidget {
   const ParametresScreen({super.key});
@@ -17,7 +21,6 @@ class _ParametresScreenState extends State<ParametresScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Astuce : Utiliser la couleur de fond du thème permet de s'adapter automatiquement au mode sombre
     final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
     final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? AppColors.textPrimary;
 
@@ -26,13 +29,13 @@ class _ParametresScreenState extends State<ParametresScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // HEADER EXACT (Flèche retour fonctionnelle + Titre)
+            // HEADER (Flèche retour fonctionnelle + Titre)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.pop(context), // ✅ Flèche retour activée
+                    onTap: () => Navigator.pop(context),
                     child: Icon(Icons.arrow_back_ios_new, size: 20, color: textColor),
                   ),
                   const SizedBox(width: 20),
@@ -47,7 +50,7 @@ class _ParametresScreenState extends State<ParametresScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 36), // Pour équilibrer visuellement
+                  const SizedBox(width: 36),
                 ],
               ),
             ),
@@ -65,10 +68,9 @@ class _ParametresScreenState extends State<ParametresScreen> {
                     onChanged: (val) {
                       setState(() => _isDarkMode = val);
                       
-                      // ✅ 2. MODIFIÉ : C'est cette ligne qui active le mode sombre PARTOUT dans l'app
+                      // Active le mode sombre PARTOUT dans l'app
                       themeNotifier.value = val ? ThemeMode.dark : ThemeMode.light;
                       
-                      // Petit feedback visuel pour confirmer l'action
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(val ? 'Mode sombre activé' : 'Mode clair activé'),
@@ -102,23 +104,32 @@ class _ParametresScreenState extends State<ParametresScreen> {
                       setState(() => _isFingerprintEnabled = val);
                     },
                   ),
+                  
+                  // ✅ BOUTON CONFIDENTIALITÉ ➔ REDIRIGE VERS LE PROFIL
                   _buildNavigationTile(
                     title: 'Confidentialité',
                     textColor: textColor,
                     onTap: () {
-                      // Action future : Naviguer vers l'écran de confidentialité
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                      );
                     },
                   ),
 
                   const SizedBox(height: 32),
 
                   // SECTION À PROPOS (Version)
+                  // ✅ BOUTON À PROPOS ➔ REDIRIGE VERS L'ÉCRAN À PROPOS
                   _buildNavigationTile(
                     title: 'À propos de l\'application',
                     subtitle: 'Version 1.0.0',
                     textColor: textColor,
                     onTap: () {
-                      // Action future : Afficher les détails de la version ou les licences
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AProposScreen()),
+                      );
                     },
                   ),
                   const SizedBox(height: 20),
@@ -131,7 +142,7 @@ class _ParametresScreenState extends State<ParametresScreen> {
     );
   }
 
-  // TITRE DE SECTION (Majuscules, gris, petit)
+  // TITRE DE SECTION
   Widget _buildSectionTitle(String title, Color textColor) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -140,14 +151,14 @@ class _ParametresScreenState extends State<ParametresScreen> {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: textColor.withOpacity(0.6), // S'adapte au mode sombre
+          color: textColor.withOpacity(0.6),
           letterSpacing: 0.5,
         ),
       ),
     );
   }
 
-  // ITEM AVEC SWITCH (INTERRUPTEUR)
+  // ITEM AVEC SWITCH
   Widget _buildSwitchTile({
     required String title,
     required bool value,
@@ -176,7 +187,7 @@ class _ParametresScreenState extends State<ParametresScreen> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: const Color(0xFF22C55E), // Vert comme sur la maquette
+            activeColor: const Color(0xFF22C55E),
             activeTrackColor: const Color(0xFF22C55E).withOpacity(0.5),
           ),
         ],
