@@ -46,3 +46,4 @@ jobs:
         with:
           name: kh-support-tech-release
           path: build/app/outputs/flutter-apk/app-release.apk
+   # Test de relance - $(date +%Y%m%d)
